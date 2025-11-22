@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ContainerWeb - 容器管理平台{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Toastr CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --dark-color: #1e293b;
+            --light-color: #f8fafc;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--light-color);
+        }
+        
+        .navbar-brand {
+            font-weight: 700;
+            color: var(--primary-color) !important;
+        }
+        
+        .sidebar {
+            min-height: calc(100vh - 56px);
+            background: white;
+            border-right: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+        }
+        
+        .sidebar .nav-link {
+            color: var(--secondary-color);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            margin: 0.25rem 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: #f1f5f9;
+            color: var(--primary-color);
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .main-content {
+            padding: 2rem;
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+            border-radius: 0.75rem;
+        }
+        
+        .card-header {
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+        }
+        
+        .btn {
+            border-radius: 0.5rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-running {
+            background-color: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-stopped {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-created {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, var(--primary-color), #3b82f6);
+            color: white;
+            border-radius: 1rem;
+        }
+        
+        .stats-card .card-body {
+            padding: 1.5rem;
+        }
+        
+        .stats-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .progress {
+            height: 0.5rem;
+            border-radius: 9999px;
+        }
+        
+        .table {
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+        
+        .table thead th {
+            background-color: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+        
+        .modal-content {
+            border-radius: 1rem;
+            border: none;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-control, .form-select {
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            transition: all 0.2s;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+        }
+        
+        .alert {
+            border-radius: 0.75rem;
+            border: none;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .terminal {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            min-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .terminal-input {
+            background: transparent;
+            border: none;
+            color: #e2e8f0;
+            outline: none;
+            width: 100%;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 56px;
+                left: -250px;
+                width: 250px;
+                z-index: 1000;
+                transition: left 0.3s;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('main.index') }}">
+                <i class="fas fa-cube me-2"></i>ContainerWeb
+            </a>
+            
+            {% if current_user.is_authenticated %}
+            <button class="navbar-toggler d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#sidebarMenu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="navbar-nav ms-auto">
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fas fa-user-circle me-1"></i>{{ current_user.username }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">
+                            <i class="fas fa-user me-2"></i>个人资料
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt me-2"></i>退出登录
+                        </a></li>
+                    </ul>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="{% if current_user.is_authenticated %}container-fluid{% else %}container{% endif %}">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show mt-3" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Main Layout -->
+    {% set content_class = "col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content" if current_user.is_authenticated else "main-content" %}
+    
+    {% if current_user.is_authenticated %}
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav id="sidebarMenu" class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}" 
+                               href="{{ url_for('main.dashboard') }}">
+                                <i class="fas fa-tachometer-alt me-2"></i>仪表板
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'containers' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('main.containers') }}">
+                                <i class="fas fa-cube me-2"></i>容器管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'networks' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('main.networks') }}">
+                                <i class="fas fa-network-wired me-2"></i>网络管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'templates' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('main.templates') }}">
+                                <i class="fas fa-layer-group me-2"></i>模板管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'files' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('main.files') }}">
+                                <i class="fas fa-folder me-2"></i>文件管理
+                            </a>
+                        </li>
+                        
+                        {% if current_user.is_admin %}
+                        <li class="nav-item mt-3">
+                            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                                <span>管理员功能</span>
+                            </h6>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'admin.dashboard' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.dashboard') }}">
+                                <i class="fas fa-cogs me-2"></i>系统管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'admin.users' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.users') }}">
+                                <i class="fas fa-users me-2"></i>用户管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'admin.engines' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.engines') }}">
+                                <i class="fas fa-server me-2"></i>引擎管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'admin.settings' in request.endpoint %}active{% endif %}" 
+                               href="{{ url_for('admin.settings') }}">
+                                <i class="fas fa-sliders-h me-2"></i>系统设置
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+            
+            <!-- Main content -->
+            <main class="{{ content_class }}">
+                <!-- Content will be rendered here -->
+            </main>
+        </div>
+    </div>
+    {% else %}
+    <div class="container">
+        <div class="{{ content_class }}">
+            <!-- Content will be rendered here -->
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Single Content Block -->
+    <div style="display: none;" id="content-template">
+        {% block content %}{% endblock %}
+    </div>
+    
+    <script>
+        // Move content to the appropriate container
+        document.addEventListener('DOMContentLoaded', function() {
+            const contentTemplate = document.getElementById('content-template');
+            const mainContent = document.querySelector('.main-content') || document.querySelector('main');
+            
+            if (contentTemplate && mainContent) {
+                mainContent.innerHTML = contentTemplate.innerHTML;
+                contentTemplate.remove();
+            }
+        });
+    </script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Socket.IO -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.2/socket.io.js"></script>
+    <!-- Axios -->
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.5.0/dist/axios.min.js"></script>
+    <!-- Toastr -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/2.1.4/toastr.min.js"></script>
+    
+    <script>
+        // 全局配置
+        axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+        
+        // 全局错误处理
+        axios.interceptors.response.use(
+            response => response,
+            error => {
+                if (error.response?.status === 401) {
+                    window.location.href = '/auth/login';
+                }
+                return Promise.reject(error);
+            }
+        );
+        
+        // 工具函数
+        function showAlert(message, type = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            const container = document.querySelector('.main-content') || document.querySelector('.container');
+            container.insertBefore(alertDiv, container.firstChild);
+            
+            // 自动消失
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString('zh-CN');
+        }
+        
+        function getStatusBadge(status) {
+            const statusMap = {
+                'running': { class: 'status-running', text: '运行中' },
+                'stopped': { class: 'status-stopped', text: '已停止' },
+                'exited': { class: 'status-stopped', text: '已退出' },
+                'created': { class: 'status-created', text: '已创建' }
+            };
+            
+            const statusInfo = statusMap[status] || { class: 'bg-secondary', text: status };
+            return `<span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>`;
+        }
+        
+        // 移动端侧边栏切换
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.querySelector('.navbar-toggler');
+            const sidebar = document.querySelector('#sidebarMenu');
+            
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+                
+                // 点击外部关闭侧边栏
+                document.addEventListener('click', function(e) {
+                    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                        sidebar.classList.remove('show');
+                    }
+                });
+            }
+        });
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

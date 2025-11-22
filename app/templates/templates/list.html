@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">模板管理</h1>
+            
+            <!-- 统计卡片 -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        总模板数
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalTemplates">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-layer-group fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        启用模板
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeTemplates">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        公共模板
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="publicTemplates">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-globe fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card stats-card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        私有模板
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="privateTemplates">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-lock fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮和筛选器 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <h6 class="m-0 font-weight-bold text-primary">模板操作</h6>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <button class="btn btn-outline-primary btn-sm" id="refreshTemplates">
+                                <i class="fas fa-sync-alt"></i> 刷新
+                            </button>
+                            <button class="btn btn-outline-danger btn-sm" id="batchDeleteTemplates" disabled>
+                                <i class="fas fa-trash"></i> 批量删除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="templateTypeFilter" class="form-label">模板类型</label>
+                            <select class="form-select" id="templateTypeFilter">
+                                <option value="">全部</option>
+                                <option value="public">公共</option>
+                                <option value="private">私有</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="templateStatusFilter" class="form-label">状态</label>
+                            <select class="form-select" id="templateStatusFilter">
+                                <option value="">全部</option>
+                                <option value="active">启用</option>
+                                <option value="inactive">禁用</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="templateSearch" class="form-label">搜索</label>
+                            <input type="text" class="form-control" id="templateSearch" placeholder="搜索模板名称...">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">&nbsp;</label>
+                            <div>
+                                <a href="{{ url_for('main.create_template') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> 创建模板
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模板列表 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">模板列表</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="templatesTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th width="5%"><input type="checkbox" id="selectAllTemplates"></th>
+                                    <th>名称</th>
+                                    <th>镜像</th>
+                                    <th>类型</th>
+                                    <th>CPU</th>
+                                    <th>内存</th>
+                                    <th>存储</th>
+                                    <th>状态</th>
+                                    <th>创建者</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 模板数据将通过JavaScript加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    let allTemplates = [];
+    let selectedTemplates = new Set();
+    
+    // 初始化数据表格
+    var table = $('#templatesTable').DataTable({
+        ajax: {
+            url: '{{ url_for("api.get_templates") }}',
+            dataSrc: function(response) {
+                allTemplates = response.data || [];
+                updateTemplateStatistics();
+                return allTemplates;
+            }
+        },
+        columns: [
+            {
+                data: 'id',
+                render: function(data, type, row) {
+                    return `<input type="checkbox" class="template-checkbox" value="${data}" ${selectedTemplates.has(data) ? 'checked' : ''}>`;
+                },
+                orderable: false
+            },
+            { data: 'name' },
+            { data: 'image' },
+            { 
+                data: 'is_public',
+                render: function(data, type, row) {
+                    if (data) {
+                        return '<span class="badge badge-success">公共</span>';
+                    } else {
+                        return '<span class="badge badge-secondary">私有</span>';
+                    }
+                }
+            },
+            { data: 'cpu_limit' },
+            { data: 'memory_limit' },
+            { data: 'storage_limit' },
+            { 
+                data: 'is_active',
+                render: function(data, type, row) {
+                    if (data) {
+                        return '<span class="badge badge-success">启用</span>';
+                    } else {
+                        return '<span class="badge badge-secondary">禁用</span>';
+                    }
+                }
+            },
+            { data: 'creator_name' },
+            { 
+                data: 'created_at',
+                render: function(data) {
+                    return new Date(data).toLocaleString('zh-CN');
+                }
+            },
+            {
+                data: 'id',
+                render: function(data, type, row) {
+                    var buttons = '<div class="btn-group" role="group">';
+                    buttons += '<a href="' + baseUrl + '/templates/' + data + '" class="btn btn-info btn-sm" title="查看详情"><i class="fas fa-eye"></i></a> ';
+                    
+                    // 只有创建者或管理员可以编辑/删除
+                    if (row.can_edit) {
+                        buttons += '<button class="btn btn-warning btn-sm edit-template" data-id="' + data + '" title="编辑"><i class="fas fa-edit"></i></button> ';
+                        buttons += '<button class="btn btn-danger btn-sm delete-template" data-id="' + data + '" title="删除"><i class="fas fa-trash"></i></button>';
+                    }
+                    
+                    buttons += '</div>';
+                    return buttons;
+                }
+            }
+        ],
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Chinese.json'
+        }
+    });
+
+    // 更新模板统计信息
+    function updateTemplateStatistics() {
+        const total = allTemplates.length;
+        const active = allTemplates.filter(t => t.is_active).length;
+        const publicTemplates = allTemplates.filter(t => t.is_public).length;
+        const privateTemplates = allTemplates.filter(t => !t.is_public).length;
+        
+        $('#totalTemplates').text(total);
+        $('#activeTemplates').text(active);
+        $('#publicTemplates').text(publicTemplates);
+        $('#privateTemplates').text(privateTemplates);
+    }
+
+    // 全选/全不选功能
+    $('#selectAllTemplates').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        $('.template-checkbox').each(function() {
+            const templateId = $(this).val();
+            if (isChecked) {
+                selectedTemplates.add(templateId);
+                $(this).prop('checked', true);
+            } else {
+                selectedTemplates.delete(templateId);
+                $(this).prop('checked', false);
+            }
+        });
+        updateBatchButtonState();
+    });
+
+    // 单个复选框点击
+    $(document).on('change', '.template-checkbox', function() {
+        const templateId = $(this).val();
+        if ($(this).is(':checked')) {
+            selectedTemplates.add(templateId);
+        } else {
+            selectedTemplates.delete(templateId);
+        }
+        updateSelectAllCheckbox();
+        updateBatchButtonState();
+    });
+
+    // 更新全选复选框状态
+    function updateSelectAllCheckbox() {
+        const allCheckboxes = $('.template-checkbox');
+        const checkedCount = allCheckboxes.filter(':checked').length;
+        const totalCount = allCheckboxes.length;
+        
+        if (checkedCount === 0) {
+            $('#selectAllTemplates').prop('checked', false).prop('indeterminate', false);
+        } else if (checkedCount === totalCount) {
+            $('#selectAllTemplates').prop('checked', true).prop('indeterminate', false);
+        } else {
+            $('#selectAllTemplates').prop('checked', false).prop('indeterminate', true);
+        }
+    }
+
+    // 更新批量操作按钮状态
+    function updateBatchButtonState() {
+        $('#batchDeleteTemplates').prop('disabled', selectedTemplates.size === 0);
+    }
+
+    // 筛选功能
+    function applyFilters() {
+        const typeFilter = $('#templateTypeFilter').val();
+        const statusFilter = $('#templateStatusFilter').val();
+        const searchTerm = $('#templateSearch').val().toLowerCase();
+        
+        let filteredTemplates = allTemplates;
+        
+        // 类型筛选
+        if (typeFilter) {
+            filteredTemplates = filteredTemplates.filter(template => {
+                if (typeFilter === 'public') return template.is_public;
+                if (typeFilter === 'private') return !template.is_public;
+                return true;
+            });
+        }
+        
+        // 状态筛选
+        if (statusFilter) {
+            filteredTemplates = filteredTemplates.filter(template => {
+                if (statusFilter === 'active') return template.is_active;
+                if (statusFilter === 'inactive') return !template.is_active;
+                return true;
+            });
+        }
+        
+        // 搜索筛选
+        if (searchTerm) {
+            filteredTemplates = filteredTemplates.filter(template => 
+                template.name.toLowerCase().includes(searchTerm) ||
+                template.image.toLowerCase().includes(searchTerm)
+            );
+        }
+        
+        // 清空并重新填充表格
+        table.clear();
+        table.rows.add(filteredTemplates);
+        table.draw();
+        
+        // 更新统计信息
+        const total = filteredTemplates.length;
+        const active = filteredTemplates.filter(t => t.is_active).length;
+        const publicTemplates = filteredTemplates.filter(t => t.is_public).length;
+        const privateTemplates = filteredTemplates.filter(t => !t.is_public).length;
+        
+        $('#totalTemplates').text(total);
+        $('#activeTemplates').text(active);
+        $('#publicTemplates').text(publicTemplates);
+        $('#privateTemplates').text(privateTemplates);
+    }
+
+    // 绑定筛选器事件
+    $('#templateTypeFilter, #templateStatusFilter').on('change', applyFilters);
+    $('#templateSearch').on('input', applyFilters);
+
+    // 刷新按钮
+    $('#refreshTemplates').on('click', function() {
+        $(this).find('i').addClass('fa-spin');
+        table.ajax.reload(function() {
+            $('#refreshTemplates i').removeClass('fa-spin');
+            toastr.success('模板列表已刷新');
+        });
+    });
+
+    // 批量删除
+    $('#batchDeleteTemplates').on('click', function() {
+        if (selectedTemplates.size === 0) {
+            toastr.warning('请选择要删除的模板');
+            return;
+        }
+        
+        if (confirm(`确定要删除选中的 ${selectedTemplates.size} 个模板吗？`)) {
+            const templateIds = Array.from(selectedTemplates);
+            
+            $.ajax({
+                url: baseUrl + '/api/templates/batch/delete',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ template_ids: templateIds }),
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success(`成功删除 ${response.success_count} 个模板`);
+                        if (response.failed_count > 0) {
+                            toastr.warning(`${response.failed_count} 个模板删除失败`);
+                        }
+                        selectedTemplates.clear();
+                        table.ajax.reload();
+                    } else {
+                        toastr.error('批量删除失败: ' + response.message);
+                    }
+                },
+                error: function() {
+                    toastr.error('批量删除请求失败');
+                }
+            });
+        }
+    });
+
+    // 删除模板
+    $(document).on('click', '.delete-template', function() {
+        const templateId = $(this).data('id');
+        const templateName = $(this).closest('tr').find('td:eq(1)').text();
+        
+        if (confirm(`确定要删除模板 "${templateName}" 吗？`)) {
+            const $btn = $(this);
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+            
+            $.ajax({
+                url: baseUrl + '/api/templates/' + templateId,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success('模板已删除');
+                        table.ajax.reload();
+                    } else {
+                        toastr.error('删除失败: ' + response.message);
+                        $btn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+                    }
+                },
+                error: function() {
+                    toastr.error('删除请求失败');
+                    $btn.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

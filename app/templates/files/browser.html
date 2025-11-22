@@ -1,0 +1,704 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">文件浏览器</h1>
+            
+            <!-- 统计卡片 -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">总文件数</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalFiles">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-file fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">文件夹数</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalFolders">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-folder fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">总大小</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalSize">0 B</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-hdd fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">当前路径</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800 text-truncate" id="currentPathShort">/</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-map-marker-alt fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">文件管理</h6>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-primary btn-sm" id="refreshBtn">
+                            <i class="fas fa-sync-alt"></i> 刷新
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm" id="batchDeleteBtn" disabled>
+                            <i class="fas fa-trash"></i> 批量删除
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb" id="breadcrumb">
+                                <li class="breadcrumb-item"><a href="#" data-path="/">根目录</a></li>
+                            </ol>
+                        </nav>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="currentPath" placeholder="当前路径" readonly>
+                                    <div class="input-group-append">
+                                        <button class="btn btn-outline-secondary" type="button" id="goPathBtn">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <input type="text" class="form-control" id="fileSearch" placeholder="搜索文件...">
+                                    </div>
+                                    <div class="col-6 text-right">
+                                        <button class="btn btn-primary btn-sm" id="uploadBtn">
+                                            <i class="fas fa-upload"></i> 上传文件
+                                        </button>
+                                        <button class="btn btn-success btn-sm" id="createFolderBtn">
+                                            <i class="fas fa-folder-plus"></i> 新建文件夹
+                                        </button>
+                                        <button class="btn btn-info btn-sm" id="createFileBtn">
+                                            <i class="fas fa-file-plus"></i> 新建文件
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="fileTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th width="30">
+                                        <input type="checkbox" id="selectAll">
+                                    </th>
+                                    <th>名称</th>
+                                    <th>类型</th>
+                                    <th>大小</th>
+                                    <th>修改时间</th>
+                                    <th>权限</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="fileTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted">
+                                        <i class="fas fa-spinner fa-spin"></i> 加载中...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 上传文件模态框 -->
+<div class="modal fade" id="uploadModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">上传文件</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="fileInput">选择文件</label>
+                        <input type="file" class="form-control-file" id="fileInput" multiple>
+                    </div>
+                    <div class="progress" style="display: none;">
+                        <div class="progress-bar" id="uploadProgress" role="progressbar" style="width: 0%"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmUpload">上传</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 新建文件夹模态框 -->
+<div class="modal fade" id="createFolderModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">新建文件夹</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createFolderForm">
+                    <div class="form-group">
+                        <label for="folderName">文件夹名称</label>
+                        <input type="text" class="form-control" id="folderName" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmCreateFolder">创建</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 新建文件模态框 -->
+<div class="modal fade" id="createFileModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">新建文件</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="createFileForm">
+                    <div class="form-group">
+                        <label for="fileName">文件名称</label>
+                        <input type="text" class="form-control" id="fileName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fileContent">文件内容</label>
+                        <textarea class="form-control" id="fileContent" rows="5"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmCreateFile">创建</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 文件编辑模态框 -->
+<div class="modal fade" id="editFileModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑文件</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editFileForm">
+                    <div class="form-group">
+                        <label for="editFileName">文件名称</label>
+                        <input type="text" class="form-control" id="editFileName" readonly>
+                        <input type="hidden" id="editFilePath">
+                    </div>
+                    <div class="form-group">
+                        <label for="editFileContent">文件内容</label>
+                        <textarea class="form-control" id="editFileContent" rows="15"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmEditFile">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    var currentPath = '/';
+    var allFiles = [];
+    var filteredFiles = [];
+    
+    // 格式化文件大小
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        var k = 1024;
+        var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // 格式化时间
+    function formatDate(timestamp) {
+        var date = new Date(timestamp * 1000);
+        return date.toLocaleString();
+    }
+    
+    // 加载文件列表
+    function loadFiles(path) {
+        currentPath = path || currentPath;
+        $('#currentPath').val(currentPath);
+        $('#fileTableBody').html('<tr><td colspan="7" class="text-center text-muted"><i class="fas fa-spinner fa-spin"></i> 加载中...</td></tr>');
+        
+        $.ajax({
+            url: '/api/files',
+            method: 'GET',
+            data: { path: currentPath },
+            success: function(response) {
+                if (response.success) {
+                    allFiles = response.files;
+                    filteredFiles = allFiles;
+                    renderFiles(filteredFiles);
+                    updateStats();
+                } else {
+                    alert('加载文件列表失败: ' + response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('加载文件列表失败: ' + error);
+            }
+        });
+    }
+    
+    // 渲染文件列表
+    function renderFiles(files) {
+        var html = '';
+        if (files.length === 0) {
+            html = '<tr><td colspan="7" class="text-center text-muted">此目录为空</td></tr>';
+        } else {
+            files.forEach(function(file) {
+                html += '<tr>';
+                html += '<td>';
+                html += '<input type="checkbox" class="file-checkbox" data-path="' + file.path + '" data-type="' + file.type + '">';
+                html += '</td>';
+                html += '<td>';
+                if (file.type === 'directory') {
+                    html += '<i class="fas fa-folder text-warning mr-2"></i>';
+                    html += '<a href="#" class="file-link" data-path="' + file.path + '" data-type="directory">' + file.name + '</a>';
+                } else {
+                    html += '<i class="fas fa-file text-info mr-2"></i>';
+                    html += '<a href="#" class="file-link" data-path="' + file.path + '" data-type="file">' + file.name + '</a>';
+                }
+                html += '</td>';
+                html += '<td>' + (file.type === 'directory' ? '文件夹' : '文件') + '</td>';
+                html += '<td>' + (file.size ? formatFileSize(file.size) : '-') + '</td>';
+                html += '<td>' + (file.modified ? formatDate(file.modified) : '-') + '</td>';
+                html += '<td>' + (file.permissions || '-') + '</td>';
+                html += '<td>';
+                html += '<div class="btn-group" role="group">';
+                if (file.type === 'file') {
+                    html += '<button class="btn btn-sm btn-info edit-file-btn" data-path="' + file.path + '" data-name="' + file.name + '" title="编辑"><i class="fas fa-edit"></i></button>';
+                }
+                html += '<button class="btn btn-sm btn-danger delete-btn" data-path="' + file.path + '" data-type="' + file.type + '" title="删除"><i class="fas fa-trash"></i></button>';
+                html += '</div>';
+                html += '</td>';
+                html += '</tr>';
+            });
+        }
+        $('#fileTableBody').html(html);
+    }
+    
+    // 更新面包屑导航
+    function updateBreadcrumb(path) {
+        var parts = path.split('/').filter(function(part) { return part !== ''; });
+        var html = '<li class="breadcrumb-item"><a href="#" data-path="/">根目录</a></li>';
+        var currentPath = '/';
+        
+        parts.forEach(function(part, index) {
+            currentPath += part + '/';
+            if (index === parts.length - 1) {
+                html += '<li class="breadcrumb-item active">' + part + '</li>';
+            } else {
+                html += '<li class="breadcrumb-item"><a href="#" data-path="' + currentPath + '">' + part + '</a></li>';
+            }
+        });
+        
+        $('#breadcrumb').html(html);
+    }
+
+    // 更新统计信息
+    function updateStats() {
+        var fileCount = filteredFiles.filter(f => f.type === 'file').length;
+        var folderCount = filteredFiles.filter(f => f.type === 'directory').length;
+        var totalSize = filteredFiles.filter(f => f.type === 'file').reduce((sum, f) => sum + (f.size || 0), 0);
+        
+        $('#totalFiles').text(fileCount);
+        $('#totalFolders').text(folderCount);
+        $('#totalSize').text(formatFileSize(totalSize));
+        $('#currentPathShort').text(currentPath);
+    }
+
+    // 搜索功能
+    function searchFiles(query) {
+        if (!query.trim()) {
+            filteredFiles = allFiles;
+        } else {
+            var lowerQuery = query.toLowerCase();
+            filteredFiles = allFiles.filter(file => 
+                file.name.toLowerCase().includes(lowerQuery)
+            );
+        }
+        renderFiles(filteredFiles);
+        updateStats();
+    }
+
+    // 获取选中的文件
+    function getSelectedFiles() {
+        var selected = [];
+        $('.file-checkbox:checked').each(function() {
+            selected.push({
+                path: $(this).data('path'),
+                type: $(this).data('type')
+            });
+        });
+        return selected;
+    }
+
+    // 批量删除
+    function batchDelete() {
+        var selected = getSelectedFiles();
+        if (selected.length === 0) {
+            alert('请选择要删除的文件');
+            return;
+        }
+
+        if (confirm('确定要删除选中的 ' + selected.length + ' 个项目吗？')) {
+            $.ajax({
+                url: baseUrl + '/api/files/batch/delete',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    paths: selected.map(item => item.path)
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        loadFiles(currentPath);
+                        alert('批量删除成功');
+                    } else {
+                        alert('批量删除失败: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('批量删除失败: ' + error);
+                }
+            });
+        }
+    }
+    
+    // 文件链接点击事件
+    $(document).on('click', '.file-link', function(e) {
+        e.preventDefault();
+        var path = $(this).data('path');
+        var type = $(this).data('type');
+        
+        if (type === 'directory') {
+            loadFiles(path);
+            updateBreadcrumb(path);
+        }
+    });
+    
+    // 面包屑导航点击事件
+    $(document).on('click', '#breadcrumb a', function(e) {
+        e.preventDefault();
+        var path = $(this).data('path');
+        loadFiles(path);
+        updateBreadcrumb(path);
+    });
+    
+    // 刷新按钮
+    $('#refreshBtn').click(function() {
+        loadFiles(currentPath);
+    });
+    
+    // 上传文件
+    $('#uploadBtn').click(function() {
+        $('#uploadModal').modal('show');
+    });
+    
+    $('#confirmUpload').click(function() {
+        var files = $('#fileInput')[0].files;
+        if (files.length === 0) {
+            alert('请选择文件');
+            return;
+        }
+        
+        var formData = new FormData();
+        for (var i = 0; i < files.length; i++) {
+            formData.append('files', files[i]);
+        }
+        formData.append('path', currentPath);
+        
+        $('.progress').show();
+        $('#uploadProgress').css('width', '0%');
+        
+        $.ajax({
+            url: '/api/files/upload',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            xhr: function() {
+                var xhr = new window.XMLHttpRequest();
+                xhr.upload.addEventListener('progress', function(e) {
+                    if (e.lengthComputable) {
+                        var percentComplete = (e.loaded / e.total) * 100;
+                        $('#uploadProgress').css('width', percentComplete + '%');
+                    }
+                });
+                return xhr;
+            },
+            success: function(response) {
+                $('#uploadModal').modal('hide');
+                if (response.success) {
+                    alert('上传成功');
+                    loadFiles(currentPath);
+                } else {
+                    alert('上传失败: ' + response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('上传失败: ' + error);
+            },
+            complete: function() {
+                $('.progress').hide();
+                $('#fileInput').val('');
+            }
+        });
+    });
+    
+    // 新建文件夹
+    $('#createFolderBtn').click(function() {
+        $('#createFolderModal').modal('show');
+    });
+    
+    $('#confirmCreateFolder').click(function() {
+        var folderName = $('#folderName').val().trim();
+        if (!folderName) {
+            alert('请输入文件夹名称');
+            return;
+        }
+        
+        $.ajax({
+            url: '/api/files/directory',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                path: currentPath + '/' + folderName
+            }),
+            success: function(response) {
+                $('#createFolderModal').modal('hide');
+                if (response.success) {
+                    alert('创建成功');
+                    loadFiles(currentPath);
+                    $('#folderName').val('');
+                } else {
+                    alert('创建失败: ' + response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('创建失败: ' + error);
+            }
+        });
+    });
+    
+    // 新建文件
+    $('#createFileBtn').click(function() {
+        $('#createFileModal').modal('show');
+    });
+    
+    $('#confirmCreateFile').click(function() {
+        var fileName = $('#fileName').val().trim();
+        var content = $('#fileContent').val();
+        
+        if (!fileName) {
+            alert('请输入文件名称');
+            return;
+        }
+        
+        $.ajax({
+            url: '/api/files',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                path: currentPath + '/' + fileName,
+                content: content
+            }),
+            success: function(response) {
+                $('#createFileModal').modal('hide');
+                if (response.success) {
+                    alert('创建成功');
+                    loadFiles(currentPath);
+                    $('#fileName').val('');
+                    $('#fileContent').val('');
+                } else {
+                    alert('创建失败: ' + response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('创建失败: ' + error);
+            }
+        });
+    });
+
+    // 全选/取消全选
+    $('#selectAll').change(function() {
+        $('.file-checkbox').prop('checked', $(this).prop('checked'));
+    });
+
+    // 搜索功能
+    $('#fileSearch').on('input', function() {
+        searchFiles($(this).val());
+    });
+
+    // 批量删除按钮
+    $('#batchDeleteBtn').click(function() {
+        batchDelete();
+    });
+    
+    // 编辑文件 - 加载文件内容
+    $(document).on('click', '.edit-file-btn', function() {
+        var path = $(this).data('path');
+        var name = $(this).data('name');
+        
+        $.ajax({
+            url: '/api/files/content',
+            method: 'GET',
+            data: { path: path },
+            success: function(response) {
+                if (response.success) {
+                    $('#editFileContent').val(response.content);
+                } else {
+                    alert('读取文件失败: ' + response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('读取文件失败: ' + error);
+            }
+        });
+        
+        $('#editFileName').text(name);
+        $('#editFilePath').val(path);
+        $('#editFileModal').modal('show');
+    });
+    
+    // 保存文件内容
+    $('#saveFileBtn').click(function() {
+        var path = $('#editFilePath').val();
+        var content = $('#editFileContent').val();
+        
+        $.ajax({
+            url: '/api/files',
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                path: path,
+                content: content
+            }),
+            success: function(response) {
+                if (response.success) {
+                    $('#editFileModal').modal('hide');
+                    alert('文件保存成功');
+                    loadFiles(currentPath);
+                } else {
+                    alert('保存文件失败: ' + response.error);
+                }
+            },
+            error: function(xhr, status, error) {
+                alert('保存文件失败: ' + error);
+            }
+        });
+    });
+    
+    // 删除文件/文件夹
+    $(document).on('click', '.delete-btn', function() {
+        var path = $(this).data('path');
+        var type = $(this).data('type');
+        
+        if (confirm('确定要删除这个' + (type === 'directory' ? '文件夹' : '文件') + '吗？')) {
+            $.ajax({
+                url: '/api/files',
+                method: 'DELETE',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    path: path
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        alert('删除成功');
+                        loadFiles(currentPath);
+                    } else {
+                        alert('删除失败: ' + response.error);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('删除失败: ' + error);
+                }
+            });
+        }
+    });
+    
+    // 初始化
+    loadFiles('/');
+    updateBreadcrumb('/');
+});
+</script>
+{% endblock %}

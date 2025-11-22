@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">系统监控</h1>
+            
+            <!-- 实时监控卡片 -->
+            <div class="row">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        CPU使用率
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="cpuUsage">--%</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-microchip fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        内存使用率
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="memoryUsage">--%</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-memory fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        磁盘使用率
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="diskUsage">--%</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-hdd fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        网络流量
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="networkTraffic">--</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-network-wired fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="row">
+                <!-- CPU使用率图表 -->
+                <div class="col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">CPU使用率趋势</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="cpuChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 内存使用率图表 -->
+                <div class="col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">内存使用率趋势</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="memoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- 磁盘使用率图表 -->
+                <div class="col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">磁盘使用率趋势</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="diskChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 网络流量图表 -->
+                <div class="col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">网络流量趋势</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="networkChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 详细信息表格 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">系统信息</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th colspan="2" class="text-center">系统信息</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>操作系统</strong></td>
+                                                <td id="osInfo">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>系统架构</strong></td>
+                                                <td id="archInfo">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>主机名</strong></td>
+                                                <td id="hostnameInfo">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>运行时间</strong></td>
+                                                <td id="uptimeInfo">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>负载平均值</strong></td>
+                                                <td id="loadavgInfo">--</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th colspan="2" class="text-center">资源信息</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><strong>CPU核心数</strong></td>
+                                                <td id="cpuCoresInfo">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>总内存</strong></td>
+                                                <td id="totalMemoryInfo">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>可用内存</strong></td>
+                                                <td id="availableMemoryInfo">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>总磁盘空间</strong></td>
+                                                <td id="totalDiskInfo">--</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>可用磁盘空间</strong></td>
+                                                <td id="availableDiskInfo">--</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 容器引擎状态 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">容器引擎状态</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="enginesStatusTable">
+                                    <thead>
+                                        <tr>
+                                            <th>引擎名称</th>
+                                            <th>状态</th>
+                                            <th>版本</th>
+                                            <th>容器数</th>
+                                            <th>CPU使用率</th>
+                                            <th>内存使用率</th>
+                                            <th>最后检查</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="enginesStatusBody">
+                                        <!-- 引擎状态将通过JavaScript加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// 全局变量
+let cpuChart, memoryChart, diskChart, networkChart;
+let monitoringData = {
+    timestamps: [],
+    cpu: [],
+    memory: [],
+    disk: [],
+    network: []
+};
+
+$(document).ready(function() {
+    initializeCharts();
+    loadSystemInfo();
+    loadEnginesStatus();
+    
+    // 每5秒更新一次监控数据
+    setInterval(updateMonitoringData, 5000);
+    
+    // 每30秒更新一次引擎状态
+    setInterval(loadEnginesStatus, 30000);
+});
+
+// 初始化图表
+function initializeCharts() {
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 100
+            }
+        }
+    };
+
+    // CPU图表
+    const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+    cpuChart = new Chart(cpuCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'CPU使用率 (%)',
+                data: [],
+                borderColor: 'rgb(75, 192, 192)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: chartOptions
+    });
+
+    // 内存图表
+    const memoryCtx = document.getElementById('memoryChart').getContext('2d');
+    memoryChart = new Chart(memoryCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: '内存使用率 (%)',
+                data: [],
+                borderColor: 'rgb(255, 99, 132)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: chartOptions
+    });
+
+    // 磁盘图表
+    const diskCtx = document.getElementById('diskChart').getContext('2d');
+    diskChart = new Chart(diskCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: '磁盘使用率 (%)',
+                data: [],
+                borderColor: 'rgb(255, 159, 64)',
+                backgroundColor: 'rgba(255, 159, 64, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: chartOptions
+    });
+
+    // 网络图表
+    const networkCtx = document.getElementById('networkChart').getContext('2d');
+    networkChart = new Chart(networkCtx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: '网络流量 (MB/s)',
+                data: [],
+                borderColor: 'rgb(54, 162, 235)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+// 加载系统信息
+function loadSystemInfo() {
+    $.ajax({
+        url: baseUrl + '/api/admin/system/info',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                updateSystemInfo(response.data);
+            }
+        },
+        error: function() {
+            console.error('Failed to load system info');
+        }
+    });
+}
+
+// 更新系统信息
+function updateSystemInfo(info) {
+    $('#osInfo').text(info.os || '--');
+    $('#archInfo').text(info.architecture || '--');
+    $('#hostnameInfo').text(info.hostname || '--');
+    $('#uptimeInfo').text(formatUptime(info.uptime) || '--');
+    $('#loadavgInfo').text(info.load_average ? info.load_average.join(', ') : '--');
+    $('#cpuCoresInfo').text(info.cpu_cores || '--');
+    $('#totalMemoryInfo').text(formatBytes(info.total_memory) || '--');
+    $('#availableMemoryInfo').text(formatBytes(info.available_memory) || '--');
+    $('#totalDiskInfo').text(formatBytes(info.total_disk) || '--');
+    $('#availableDiskInfo').text(formatBytes(info.available_disk) || '--');
+}
+
+// 加载引擎状态
+function loadEnginesStatus() {
+    $.ajax({
+        url: baseUrl + '/api/admin/engines',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                renderEnginesStatus(response.data);
+            }
+        },
+        error: function() {
+            console.error('Failed to load engines status');
+        }
+    });
+}
+
+// 渲染引擎状态
+function renderEnginesStatus(engines) {
+    const tbody = $('#enginesStatusBody');
+    tbody.empty();
+    
+    engines.forEach(function(engine) {
+        const row = `
+            <tr>
+                <td>${engine.name}</td>
+                <td>${getStatusBadge(engine.status)}</td>
+                <td>${engine.version || '-'}</td>
+                <td>${engine.container_count || 0}</td>
+                <td>${engine.cpu_usage || '-'}</td>
+                <td>${engine.memory_usage || '-'}</td>
+                <td>${engine.last_check ? formatDate(engine.last_check) : '-'}</td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+// 更新监控数据
+function updateMonitoringData() {
+    $.ajax({
+        url: baseUrl + '/api/admin/system/monitoring',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                updateMonitoringDisplay(response.data);
+            }
+        },
+        error: function() {
+            console.error('Failed to load monitoring data');
+        }
+    });
+}
+
+// 更新监控显示
+function updateMonitoringDisplay(data) {
+    // 更新卡片显示
+    $('#cpuUsage').text(data.cpu_usage + '%');
+    $('#memoryUsage').text(data.memory_usage + '%');
+    $('#diskUsage').text(data.disk_usage + '%');
+    $('#networkTraffic').text(formatBytes(data.network_traffic) + '/s');
+
+    // 更新图表数据
+    const now = new Date().toLocaleTimeString();
+    
+    // 保持最近20个数据点
+    if (monitoringData.timestamps.length >= 20) {
+        monitoringData.timestamps.shift();
+        monitoringData.cpu.shift();
+        monitoringData.memory.shift();
+        monitoringData.disk.shift();
+        monitoringData.network.shift();
+    }
+
+    monitoringData.timestamps.push(now);
+    monitoringData.cpu.push(data.cpu_usage);
+    monitoringData.memory.push(data.memory_usage);
+    monitoringData.disk.push(data.disk_usage);
+    monitoringData.network.push(data.network_traffic / 1024 / 1024); // Convert to MB
+
+    // 更新图表
+    updateChart(cpuChart, monitoringData.timestamps, monitoringData.cpu);
+    updateChart(memoryChart, monitoringData.timestamps, monitoringData.memory);
+    updateChart(diskChart, monitoringData.timestamps, monitoringData.disk);
+    updateNetworkChart(networkChart, monitoringData.timestamps, monitoringData.network);
+}
+
+// 更新图表
+function updateChart(chart, labels, data) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.update();
+}
+
+// 更新网络图表
+function updateNetworkChart(chart, labels, data) {
+    chart.data.labels = labels;
+    chart.data.datasets[0].data = data;
+    chart.update();
+}
+
+// 格式化字节
+function formatBytes(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// 格式化运行时间
+function formatUptime(seconds) {
+    const days = Math.floor(seconds / 86400);
+    const hours = Math.floor((seconds % 86400) / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    let result = '';
+    if (days > 0) result += days + '天 ';
+    if (hours > 0) result += hours + '小时 ';
+    if (minutes > 0) result += minutes + '分钟';
+    
+    return result || '0分钟';
+}
+
+// 获取状态标签
+function getStatusBadge(status) {
+    const badges = {
+        'online': '<span class="badge badge-success">在线</span>',
+        'offline': '<span class="badge badge-danger">离线</span>',
+        'error': '<span class="badge badge-warning">错误</span>',
+        'unknown': '<span class="badge badge-secondary">未知</span>'
+    };
+    return badges[status] || '<span class="badge badge-light">未知</span>';
+}
+</script>
+{% endblock %}

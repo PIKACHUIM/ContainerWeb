@@ -1,0 +1,255 @@
+{% extends "base.html" %}
+
+{% block title %}ContainerWeb - 现代化容器管理平台{% endblock %}
+
+{% block content %}
+<div class="hero-section py-5 mb-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 1rem;">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">ContainerWeb</h1>
+                <p class="lead mb-4">统一管理 Docker、Podman、LXC 容器的现代化平台</p>
+                <p class="mb-4">支持多引擎、多用户、权限管理，提供完整的容器生命周期管理解决方案。</p>
+                <div class="d-flex gap-3">
+                    {% if settings.allow_registration %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>立即注册
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-sign-in-alt me-2"></i>登录
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <i class="fas fa-cube" style="font-size: 8rem; opacity: 0.3;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <!-- 功能特性 -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-5">核心功能</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-layer-group fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">多引擎支持</h5>
+                    <p class="card-text">统一管理 Docker、Podman、LXC 容器引擎，提供一致的操作体验。</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-users fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">多用户管理</h5>
+                    <p class="card-text">支持多用户注册、权限控制、资源配额管理，满足团队协作需求。</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-terminal fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Web终端</h5>
+                    <p class="card-text">内置Web终端，支持实时命令执行、日志查看、文件管理。</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-network-wired fa-3x text-info"></i>
+                    </div>
+                    <h5 class="card-title">网络管理</h5>
+                    <p class="card-text">创建和管理自定义网络，支持容器间通信和网络隔离。</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-chart-line fa-3x text-danger"></i>
+                    </div>
+                    <h5 class="card-title">实时监控</h5>
+                    <p class="card-text">实时监控容器状态、资源使用情况，提供详细的统计信息。</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-mobile-alt fa-3x text-secondary"></i>
+                    </div>
+                    <h5 class="card-title">响应式设计</h5>
+                    <p class="card-text">完全响应式设计，支持桌面、平板、手机等各种设备访问。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 系统统计 -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-5">平台统计</h2>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card stats-card text-center">
+                <div class="card-body">
+                    <div class="stats-number">{{ stats.total_users }}</div>
+                    <div>注册用户</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card stats-card text-center" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <div class="card-body">
+                    <div class="stats-number">{{ stats.total_containers }}</div>
+                    <div>总容器数</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card stats-card text-center" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <div class="card-body">
+                    <div class="stats-number">{{ stats.running_containers }}</div>
+                    <div>运行中容器</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-4">
+            <div class="card stats-card text-center" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                <div class="card-body">
+                    <div class="stats-number">{{ stats.total_templates }}</div>
+                    <div>可用模板</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 支持的引擎 -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-5">支持的容器引擎</h2>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fab fa-docker fa-4x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Docker</h5>
+                    <p class="card-text">业界标准的容器化平台，支持完整的容器生命周期管理。</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-cube fa-4x text-success"></i>
+                    </div>
+                    <h5 class="card-title">Podman</h5>
+                    <p class="card-text">无守护进程的容器引擎，提供更安全的容器运行环境。</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-center">
+                <div class="card-body">
+                    <div class="mb-3">
+                        <i class="fas fa-server fa-4x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">LXC</h5>
+                    <p class="card-text">Linux容器技术，提供系统级虚拟化和轻量级容器解决方案。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 快速开始 -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">快速开始</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-user-plus me-2 text-primary"></i>1. 注册账户</h5>
+                            <p class="mb-4">创建您的账户，获得容器管理权限和资源配额。</p>
+                            
+                            <h5><i class="fas fa-cube me-2 text-success"></i>2. 创建容器</h5>
+                            <p class="mb-4">选择模板或自定义配置，快速创建和部署容器。</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-play me-2 text-warning"></i>3. 管理容器</h5>
+                            <p class="mb-4">启动、停止、重启容器，查看日志和监控状态。</p>
+                            
+                            <h5><i class="fas fa-terminal me-2 text-info"></i>4. 使用终端</h5>
+                            <p class="mb-4">通过Web终端直接操作容器，管理文件和执行命令。</p>
+                        </div>
+                    </div>
+                    <div class="text-center mt-4">
+                        {% if settings.allow_registration %}
+                        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-rocket me-2"></i>立即开始
+                        </a>
+                        {% endif %}
+                        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>已有账户？登录
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if settings.maintenance_mode %}
+<div class="alert alert-warning text-center" role="alert">
+    <h4 class="alert-heading"><i class="fas fa-tools me-2"></i>系统维护中</h4>
+    <p class="mb-0">{{ settings.maintenance_message or '系统正在进行维护，部分功能可能暂时不可用。' }}</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 添加滚动动画效果
+    const cards = document.querySelectorAll('.card');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    });
+    
+    cards.forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+        observer.observe(card);
+    });
+});
+</script>
+{% endblock %}

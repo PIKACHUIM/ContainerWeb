@@ -1,0 +1,500 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">网络管理</h1>
+            
+            <!-- 统计卡片 -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">总网络数</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalNetworks">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-network-wired fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">活跃网络</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="activeNetworks">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">网桥网络</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="bridgeNetworks">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-bridge fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">覆盖网络</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="overlayNetworks">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-layer-group fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 操作按钮和筛选 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="m-0 font-weight-bold text-primary">网络操作</h6>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-outline-secondary btn-sm" id="refreshNetworks">
+                                    <i class="fas fa-sync-alt"></i> 刷新
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" id="batchDeleteNetworks" disabled>
+                                    <i class="fas fa-trash"></i> 批量删除
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <select class="form-control" id="networkTypeFilter">
+                                <option value="">所有类型</option>
+                                <option value="bridge">网桥</option>
+                                <option value="overlay">覆盖</option>
+                                <option value="host">主机</option>
+                                <option value="macvlan">MACVLAN</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <select class="form-control" id="networkStatusFilter">
+                                <option value="">所有状态</option>
+                                <option value="active">活跃</option>
+                                <option value="inactive">未激活</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="networkSearch" placeholder="搜索网络名称...">
+                        </div>
+                    </div>
+                    <a href="{{ url_for('main.create_network') }}" class="btn btn-primary btn-icon-split">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                        <span class="text">创建网络</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 网络列表 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">网络列表</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="networksTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox" id="selectAllNetworks">
+                                    </th>
+                                    <th>名称</th>
+                                    <th>类型</th>
+                                    <th>子网</th>
+                                    <th>网关</th>
+                                    <th>状态</th>
+                                    <th>引擎</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 网络数据将通过JavaScript加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    let allNetworks = [];
+    let selectedNetworks = [];
+    
+    // 初始化数据表格
+    var table = $('#networksTable').DataTable({
+        ajax: {
+            url: '{{ url_for("api.get_user_networks") }}',
+            dataSrc: function(response) {
+                if (response.success && response.data) {
+                    allNetworks = response.data.networks;
+                    updateNetworkStatistics();
+                    return allNetworks;
+                }
+                return [];
+            }
+        },
+        columns: [
+            {
+                data: 'id',
+                render: function(data) {
+                    return '<input type="checkbox" class="network-checkbox" value="' + data + '">';
+                },
+                orderable: false,
+                width: '30px'
+            },
+            { data: 'name' },
+            { data: 'driver' },
+            { data: 'subnet' },
+            { data: 'gateway' },
+            { 
+                data: 'is_active',
+                render: function(data, type, row) {
+                    if (data) {
+                        return '<span class="badge badge-success">活跃</span>';
+                    } else {
+                        return '<span class="badge badge-secondary">未激活</span>';
+                    }
+                }
+            },
+            { data: 'engine_name' },
+            { 
+                data: 'created_at',
+                render: function(data) {
+                    return new Date(data).toLocaleString('zh-CN');
+                }
+            },
+            {
+                data: 'id',
+                render: function(data, type, row) {
+                    var buttons = '<div class="btn-group" role="group">';
+                    if (row.is_active) {
+                        buttons += '<button class="btn btn-warning btn-sm deactivate-network" data-id="' + data + '" title="停用网络"><i class="fas fa-pause"></i></button> ';
+                    } else {
+                        buttons += '<button class="btn btn-success btn-sm activate-network" data-id="' + data + '" title="激活网络"><i class="fas fa-play"></i></button> ';
+                    }
+                    buttons += '<button class="btn btn-info btn-sm network-details" data-id="' + data + '" title="网络详情"><i class="fas fa-info-circle"></i></button> ';
+                    buttons += '<button class="btn btn-danger btn-sm delete-network" data-id="' + data + '" title="删除网络"><i class="fas fa-trash"></i></button>';
+                    buttons += '</div>';
+                    return buttons;
+                },
+                orderable: false,
+                width: '150px'
+            }
+        ],
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Chinese.json'
+        }
+    });
+    
+    // 更新网络统计信息
+    function updateNetworkStatistics() {
+        // 使用API返回的统计数据（如果可用）
+        if (table.ajax.json() && table.ajax.json().data && table.ajax.json().data.statistics) {
+            const stats = table.ajax.json().data.statistics;
+            $('#totalNetworks').text(stats.total);
+            $('#activeNetworks').text(stats.active);
+            $('#bridgeNetworks').text(stats.bridge);
+            $('#overlayNetworks').text(stats.overlay);
+        } else {
+            // 回退到本地计算
+            const total = allNetworks.length;
+            const active = allNetworks.filter(n => n.is_active).length;
+            const bridge = allNetworks.filter(n => n.driver === 'bridge').length;
+            const overlay = allNetworks.filter(n => n.driver === 'overlay').length;
+            
+            $('#totalNetworks').text(total);
+            $('#activeNetworks').text(active);
+            $('#bridgeNetworks').text(bridge);
+            $('#overlayNetworks').text(overlay);
+        }
+    }
+    
+    // 全选/全不选功能
+    $('#selectAllNetworks').change(function() {
+        const isChecked = $(this).is(':checked');
+        $('.network-checkbox').prop('checked', isChecked);
+        updateSelectedNetworks();
+    });
+    
+    // 更新选中的网络
+    function updateSelectedNetworks() {
+        selectedNetworks = [];
+        $('.network-checkbox:checked').each(function() {
+            selectedNetworks.push($(this).val());
+        });
+        
+        // 更新批量操作按钮状态
+        $('#batchDeleteNetworks').prop('disabled', selectedNetworks.length === 0);
+    }
+    
+    // 监听复选框变化
+    $(document).on('change', '.network-checkbox', function() {
+        updateSelectedNetworks();
+        
+        // 更新全选框状态
+        const totalCheckboxes = $('.network-checkbox').length;
+        const checkedCheckboxes = $('.network-checkbox:checked').length;
+        $('#selectAllNetworks').prop('checked', totalCheckboxes === checkedCheckboxes && totalCheckboxes > 0);
+    });
+    
+    // 筛选功能
+    function applyFilters() {
+        const typeFilter = $('#networkTypeFilter').val();
+        const statusFilter = $('#networkStatusFilter').val();
+        const searchTerm = $('#networkSearch').val();
+        
+        // 使用服务器端筛选
+        let url = '{{ url_for("api.get_user_networks") }}';
+        const params = [];
+        
+        if (typeFilter) {
+            params.push('type=' + encodeURIComponent(typeFilter));
+        }
+        
+        if (statusFilter) {
+            params.push('status=' + encodeURIComponent(statusFilter));
+        }
+        
+        if (searchTerm) {
+            params.push('search=' + encodeURIComponent(searchTerm));
+        }
+        
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+        
+        // 重新加载数据
+        table.ajax.url(url).load();
+    }
+    
+    $('#networkTypeFilter, #networkStatusFilter').change(applyFilters);
+    $('#networkSearch').keyup(applyFilters);
+
+    // 激活网络
+    $(document).on('click', '.activate-network', function() {
+        var networkId = $(this).data('id');
+        var button = $(this);
+        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        $.ajax({
+            url: '/api/networks/' + networkId + '/activate',
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    toastr.success('网络激活成功');
+                    table.ajax.reload();
+                } else {
+                    toastr.error('网络激活失败: ' + response.message);
+                    button.prop('disabled', false).html('<i class="fas fa-play"></i>');
+                }
+            },
+            error: function() {
+                toastr.error('网络激活失败');
+                button.prop('disabled', false).html('<i class="fas fa-play"></i>');
+            }
+        });
+    });
+
+    // 停用网络
+    $(document).on('click', '.deactivate-network', function() {
+        var networkId = $(this).data('id');
+        var button = $(this);
+        button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        $.ajax({
+            url: '/api/networks/' + networkId + '/deactivate',
+            method: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    toastr.success('网络停用成功');
+                    table.ajax.reload();
+                } else {
+                    toastr.error('网络停用失败: ' + response.message);
+                    button.prop('disabled', false).html('<i class="fas fa-pause"></i>');
+                }
+            },
+            error: function() {
+                toastr.error('网络停用失败');
+                button.prop('disabled', false).html('<i class="fas fa-pause"></i>');
+            }
+        });
+    });
+
+    // 网络详情
+    $(document).on('click', '.network-details', function() {
+        var networkId = $(this).data('id');
+        $.ajax({
+            url: '/api/networks/' + networkId,
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    showNetworkDetails(response.data);
+                } else {
+                    toastr.error('获取网络详情失败: ' + response.message);
+                }
+            },
+            error: function() {
+                toastr.error('获取网络详情失败');
+            }
+        });
+    });
+
+    // 删除网络
+    $(document).on('click', '.delete-network', function() {
+        var networkId = $(this).data('id');
+        var button = $(this);
+        
+        if (confirm('确定要删除这个网络吗？')) {
+            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+            
+            $.ajax({
+                url: '/api/networks/' + networkId,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success('网络删除成功');
+                        table.ajax.reload();
+                    } else {
+                        toastr.error('网络删除失败: ' + response.message);
+                        button.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+                    }
+                },
+                error: function() {
+                    toastr.error('网络删除失败');
+                    button.prop('disabled', false).html('<i class="fas fa-trash"></i>');
+                }
+            });
+        }
+    });
+    
+    // 批量删除网络
+    $('#batchDeleteNetworks').click(function() {
+        if (selectedNetworks.length === 0) {
+            toastr.warning('请先选择要删除的网络');
+            return;
+        }
+        
+        if (confirm('确定要删除选中的 ' + selectedNetworks.length + ' 个网络吗？')) {
+            var button = $(this);
+            button.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> 删除中...');
+            
+            $.ajax({
+                url: '/api/networks/batch/delete',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ network_ids: selectedNetworks }),
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success('批量删除成功');
+                        table.ajax.reload();
+                        $('#selectAllNetworks').prop('checked', false);
+                    } else {
+                        toastr.error('批量删除失败: ' + response.message);
+                        button.prop('disabled', false).html('<i class="fas fa-trash"></i> 批量删除');
+                    }
+                },
+                error: function() {
+                    toastr.error('批量删除失败');
+                    button.prop('disabled', false).html('<i class="fas fa-trash"></i> 批量删除');
+                }
+            });
+        }
+    });
+    
+    // 刷新网络列表
+    $('#refreshNetworks').click(function() {
+        table.ajax.reload();
+        toastr.success('网络列表已刷新');
+    });
+    
+    // 显示网络详情
+    function showNetworkDetails(network) {
+        var detailsHtml = `
+            <div class="modal fade" id="networkDetailsModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">网络详情 - ${network.name}</h5>
+                            <button type="button" class="close" data-dismiss="modal">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>基本信息</h6>
+                                    <table class="table table-sm">
+                                        <tr><td><strong>名称:</strong></td><td>${network.name}</td></tr>
+                                        <tr><td><strong>类型:</strong></td><td>${network.network_type}</td></tr>
+                                        <tr><td><strong>子网:</strong></td><td>${network.subnet || 'N/A'}</td></tr>
+                                        <tr><td><strong>网关:</strong></td><td>${network.gateway || 'N/A'}</td></tr>
+                                        <tr><td><strong>状态:</strong></td><td>${network.is_active ? '<span class="badge badge-success">活跃</span>' : '<span class="badge badge-secondary">未激活</span>'}</td></tr>
+                                    </table>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>其他信息</h6>
+                                    <table class="table table-sm">
+                                        <tr><td><strong>引擎:</strong></td><td>${network.engine_name || 'N/A'}</td></tr>
+                                        <tr><td><strong>创建时间:</strong></td><td>${new Date(network.created_at).toLocaleString('zh-CN')}</td></tr>
+                                        <tr><td><strong>更新时间:</strong></td><td>${new Date(network.updated_at).toLocaleString('zh-CN')}</td></tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // 移除已存在的模态框
+        $('#networkDetailsModal').remove();
+        $('body').append(detailsHtml);
+        $('#networkDetailsModal').modal('show');
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">系统设置</h1>
+            
+            <!-- 设置分类 -->
+            <div class="row">
+                <div class="col-lg-3">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">设置分类</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="list-group list-group-flush">
+                                <a class="list-group-item list-group-item-action active" data-toggle="tab" href="#general-settings">
+                                    <i class="fas fa-cog"></i> 常规设置
+                                </a>
+                                <a class="list-group-item list-group-item-action" data-toggle="tab" href="#security-settings">
+                                    <i class="fas fa-shield-alt"></i> 安全设置
+                                </a>
+                                <a class="list-group-item list-group-item-action" data-toggle="tab" href="#container-settings">
+                                    <i class="fas fa-cube"></i> 容器设置
+                                </a>
+                                <a class="list-group-item list-group-item-action" data-toggle="tab" href="#email-settings">
+                                    <i class="fas fa-envelope"></i> 邮件设置
+                                </a>
+                                <a class="list-group-item list-group-item-action" data-toggle="tab" href="#system-settings">
+                                    <i class="fas fa-server"></i> 系统设置
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-9">
+                    <div class="tab-content">
+                        <!-- 常规设置 -->
+                        <div class="tab-pane fade show active" id="general-settings">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">常规设置</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="generalSettingsForm">
+                                        <div class="form-group">
+                                            <label>网站名称</label>
+                                            <input type="text" class="form-control" name="site_name" id="siteName" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>网站描述</label>
+                                            <textarea class="form-control" name="site_description" id="siteDescription" rows="3"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>网站Logo</label>
+                                            <input type="text" class="form-control" name="site_logo" id="siteLogo">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>时区</label>
+                                            <select class="form-control" name="timezone" id="timezone">
+                                                <option value="Asia/Shanghai">Asia/Shanghai</option>
+                                                <option value="UTC">UTC</option>
+                                                <option value="America/New_York">America/New_York</option>
+                                                <option value="Europe/London">Europe/London</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>语言</label>
+                                            <select class="form-control" name="language" id="language">
+                                                <option value="zh_CN">简体中文</option>
+                                                <option value="en_US">English</option>
+                                            </select>
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="saveGeneralSettings()">保存设置</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 安全设置 -->
+                        <div class="tab-pane fade" id="security-settings">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">安全设置</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="securitySettingsForm">
+                                        <div class="form-group">
+                                            <label>启用注册</label>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" name="enable_registration" id="enableRegistration">
+                                                <label class="custom-control-label" for="enableRegistration">允许新用户注册</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>启用邮箱验证</label>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" name="enable_email_verification" id="enableEmailVerification">
+                                                <label class="custom-control-label" for="enableEmailVerification">要求邮箱验证</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>登录失败重试次数</label>
+                                            <input type="number" class="form-control" name="login_attempts" id="loginAttempts" min="1" max="10">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>账户锁定时间（分钟）</label>
+                                            <input type="number" class="form-control" name="lockout_duration" id="lockoutDuration" min="1" max="1440">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>密码最小长度</label>
+                                            <input type="number" class="form-control" name="password_min_length" id="passwordMinLength" min="6" max="32">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>JWT令牌过期时间（小时）</label>
+                                            <input type="number" class="form-control" name="jwt_expiration" id="jwtExpiration" min="1" max="720">
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="saveSecuritySettings()">保存设置</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 容器设置 -->
+                        <div class="tab-pane fade" id="container-settings">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">容器设置</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="containerSettingsForm">
+                                        <div class="form-group">
+                                            <label>每个用户的最大容器数</label>
+                                            <input type="number" class="form-control" name="max_containers_per_user" id="maxContainersPerUser" min="1" max="100">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>默认CPU限制（核）</label>
+                                            <input type="number" class="form-control" name="default_cpu_limit" id="defaultCpuLimit" step="0.1" min="0.1" max="64">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>默认内存限制（MB）</label>
+                                            <input type="number" class="form-control" name="default_memory_limit" id="defaultMemoryLimit" min="64" max="65536">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>默认存储限制（GB）</label>
+                                            <input type="number" class="form-control" name="default_storage_limit" id="defaultStorageLimit" min="1" max="1024">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>容器自动清理时间（天）</label>
+                                            <input type="number" class="form-control" name="container_cleanup_days" id="containerCleanupDays" min="1" max="365">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>启用容器日志</label>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" name="enable_container_logs" id="enableContainerLogs">
+                                                <label class="custom-control-label" for="enableContainerLogs">启用容器日志记录</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>日志最大大小（MB）</label>
+                                            <input type="number" class="form-control" name="max_log_size" id="maxLogSize" min="1" max="1024">
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="saveContainerSettings()">保存设置</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 邮件设置 -->
+                        <div class="tab-pane fade" id="email-settings">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">邮件设置</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="emailSettingsForm">
+                                        <div class="form-group">
+                                            <label>SMTP服务器</label>
+                                            <input type="text" class="form-control" name="smtp_server" id="smtpServer">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>SMTP端口</label>
+                                            <input type="number" class="form-control" name="smtp_port" id="smtpPort" min="1" max="65535">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>SMTP用户名</label>
+                                            <input type="text" class="form-control" name="smtp_username" id="smtpUsername">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>SMTP密码</label>
+                                            <input type="password" class="form-control" name="smtp_password" id="smtpPassword">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>启用TLS</label>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" name="smtp_tls" id="smtpTls">
+                                                <label class="custom-control-label" for="smtpTls">启用TLS加密</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>发件人邮箱</label>
+                                            <input type="email" class="form-control" name="from_email" id="fromEmail">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>发件人名称</label>
+                                            <input type="text" class="form-control" name="from_name" id="fromName">
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="saveEmailSettings()">保存设置</button>
+                                        <button type="button" class="btn btn-outline-secondary" onclick="testEmailSettings()">测试邮件</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 系统设置 -->
+                        <div class="tab-pane fade" id="system-settings">
+                            <div class="card shadow mb-4">
+                                <div class="card-header py-3">
+                                    <h6 class="m-0 font-weight-bold text-primary">系统设置</h6>
+                                </div>
+                                <div class="card-body">
+                                    <form id="systemSettingsForm">
+                                        <div class="form-group">
+                                            <label>调试模式</label>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" name="debug_mode" id="debugMode">
+                                                <label class="custom-control-label" for="debugMode">启用调试模式</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>日志级别</label>
+                                            <select class="form-control" name="log_level" id="logLevel">
+                                                <option value="DEBUG">DEBUG</option>
+                                                <option value="INFO">INFO</option>
+                                                <option value="WARNING">WARNING</option>
+                                                <option value="ERROR">ERROR</option>
+                                                <option value="CRITICAL">CRITICAL</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>数据库备份时间</label>
+                                            <input type="time" class="form-control" name="backup_time" id="backupTime">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>备份保留天数</label>
+                                            <input type="number" class="form-control" name="backup_retention_days" id="backupRetentionDays" min="1" max="365">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>启用监控</label>
+                                            <div class="custom-control custom-switch">
+                                                <input type="checkbox" class="custom-control-input" name="enable_monitoring" id="enableMonitoring">
+                                                <label class="custom-control-label" for="enableMonitoring">启用系统监控</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>监控数据保留天数</label>
+                                            <input type="number" class="form-control" name="monitoring_retention_days" id="monitoringRetentionDays" min="1" max="365">
+                                        </div>
+                                        <button type="button" class="btn btn-primary" onclick="saveSystemSettings()">保存设置</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    loadSettings();
+});
+
+// 加载设置
+function loadSettings() {
+    $.ajax({
+        url: baseUrl + '/api/admin/settings',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                populateSettings(response.data);
+            } else {
+                toastr.error('加载设置失败');
+            }
+        },
+        error: function() {
+            toastr.error('加载设置失败');
+        }
+    });
+}
+
+// 填充设置表单
+function populateSettings(settings) {
+    // 常规设置
+    $('#siteName').val(settings.site_name || '');
+    $('#siteDescription').val(settings.site_description || '');
+    $('#siteLogo').val(settings.site_logo || '');
+    $('#timezone').val(settings.timezone || 'Asia/Shanghai');
+    $('#language').val(settings.language || 'zh_CN');
+    
+    // 安全设置
+    $('#enableRegistration').prop('checked', settings.enable_registration || false);
+    $('#enableEmailVerification').prop('checked', settings.enable_email_verification || false);
+    $('#loginAttempts').val(settings.login_attempts || 5);
+    $('#lockoutDuration').val(settings.lockout_duration || 30);
+    $('#passwordMinLength').val(settings.password_min_length || 8);
+    $('#jwtExpiration').val(settings.jwt_expiration || 24);
+    
+    // 容器设置
+    $('#maxContainersPerUser').val(settings.max_containers_per_user || 10);
+    $('#defaultCpuLimit').val(settings.default_cpu_limit || 1.0);
+    $('#defaultMemoryLimit').val(settings.default_memory_limit || 1024);
+    $('#defaultStorageLimit').val(settings.default_storage_limit || 10);
+    $('#containerCleanupDays').val(settings.container_cleanup_days || 30);
+    $('#enableContainerLogs').prop('checked', settings.enable_container_logs || true);
+    $('#maxLogSize').val(settings.max_log_size || 100);
+    
+    // 邮件设置
+    $('#smtpServer').val(settings.smtp_server || '');
+    $('#smtpPort').val(settings.smtp_port || 587);
+    $('#smtpUsername').val(settings.smtp_username || '');
+    $('#smtpTls').prop('checked', settings.smtp_tls || true);
+    $('#fromEmail').val(settings.from_email || '');
+    $('#fromName').val(settings.from_name || '');
+    
+    // 系统设置
+    $('#debugMode').prop('checked', settings.debug_mode || false);
+    $('#logLevel').val(settings.log_level || 'INFO');
+    $('#backupTime').val(settings.backup_time || '02:00');
+    $('#backupRetentionDays').val(settings.backup_retention_days || 30);
+    $('#enableMonitoring').prop('checked', settings.enable_monitoring || true);
+    $('#monitoringRetentionDays').val(settings.monitoring_retention_days || 30);
+}
+
+// 保存常规设置
+function saveGeneralSettings() {
+    const formData = new FormData($('#generalSettingsForm')[0]);
+    const settings = {};
+    formData.forEach((value, key) => {
+        settings[key] = value;
+    });
+    
+    saveSettings(settings);
+}
+
+// 保存安全设置
+function saveSecuritySettings() {
+    const settings = {
+        enable_registration: $('#enableRegistration').is(':checked'),
+        enable_email_verification: $('#enableEmailVerification').is(':checked'),
+        login_attempts: parseInt($('#loginAttempts').val()),
+        lockout_duration: parseInt($('#lockoutDuration').val()),
+        password_min_length: parseInt($('#passwordMinLength').val()),
+        jwt_expiration: parseInt($('#jwtExpiration').val())
+    };
+    
+    saveSettings(settings);
+}
+
+// 保存容器设置
+function saveContainerSettings() {
+    const settings = {
+        max_containers_per_user: parseInt($('#maxContainersPerUser').val()),
+        default_cpu_limit: parseFloat($('#defaultCpuLimit').val()),
+        default_memory_limit: parseInt($('#defaultMemoryLimit').val()),
+        default_storage_limit: parseInt($('#defaultStorageLimit').val()),
+        container_cleanup_days: parseInt($('#containerCleanupDays').val()),
+        enable_container_logs: $('#enableContainerLogs').is(':checked'),
+        max_log_size: parseInt($('#maxLogSize').val())
+    };
+    
+    saveSettings(settings);
+}
+
+// 保存邮件设置
+function saveEmailSettings() {
+    const settings = {
+        smtp_server: $('#smtpServer').val(),
+        smtp_port: parseInt($('#smtpPort').val()),
+        smtp_username: $('#smtpUsername').val(),
+        smtp_password: $('#smtpPassword').val(),
+        smtp_tls: $('#smtpTls').is(':checked'),
+        from_email: $('#fromEmail').val(),
+        from_name: $('#fromName').val()
+    };
+    
+    saveSettings(settings);
+}
+
+// 保存系统设置
+function saveSystemSettings() {
+    const settings = {
+        debug_mode: $('#debugMode').is(':checked'),
+        log_level: $('#logLevel').val(),
+        backup_time: $('#backupTime').val(),
+        backup_retention_days: parseInt($('#backupRetentionDays').val()),
+        enable_monitoring: $('#enableMonitoring').is(':checked'),
+        monitoring_retention_days: parseInt($('#monitoringRetentionDays').val())
+    };
+    
+    saveSettings(settings);
+}
+
+// 保存设置
+function saveSettings(settings) {
+    $.ajax({
+        url: baseUrl + '/api/admin/settings',
+        method: 'PUT',
+        data: JSON.stringify(settings),
+        contentType: 'application/json',
+        success: function(response) {
+            if (response.success) {
+                toastr.success('设置保存成功');
+            } else {
+                toastr.error(response.message || '设置保存失败');
+            }
+        },
+        error: function() {
+            toastr.error('设置保存失败');
+        }
+    });
+}
+
+// 测试邮件设置
+function testEmailSettings() {
+    $.ajax({
+        url: baseUrl + '/api/admin/settings/test-email',
+        method: 'POST',
+        success: function(response) {
+            if (response.success) {
+                toastr.success('测试邮件发送成功');
+            } else {
+                toastr.error(response.message || '测试邮件发送失败');
+            }
+        },
+        error: function() {
+            toastr.error('测试邮件发送失败');
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,697 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">容器管理</h1>
+            
+            <!-- 操作按钮 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">容器操作</h6>
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('main.create_container') }}" class="btn btn-primary btn-icon-split">
+                        <span class="icon text-white-50">
+                            <i class="fas fa-plus"></i>
+                        </span>
+                        <span class="text">创建容器</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 筛选和统计 -->
+            <div class="row mb-4">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">总容器数</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="totalContainers">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-cube fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">运行中</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="runningContainers">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-play fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">已停止</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="stoppedContainers">0</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-stop fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">总资源使用</div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800" id="resourceUsage">0%</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-chart-pie fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 筛选工具栏 -->
+            <div class="card shadow mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="statusFilter">状态筛选</label>
+                                <select class="form-control" id="statusFilter">
+                                    <option value="">全部状态</option>
+                                    <option value="running">运行中</option>
+                                    <option value="stopped">已停止</option>
+                                    <option value="error">错误</option>
+                                    <option value="creating">创建中</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="engineFilter">引擎筛选</label>
+                                <select class="form-control" id="engineFilter">
+                                    <option value="">全部引擎</option>
+                                    {% for engine in engines %}
+                                    <option value="{{ engine.name }}">{{ engine.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label for="searchInput">搜索容器</label>
+                                <input type="text" class="form-control" id="searchInput" placeholder="输入容器名称或镜像...">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <div>
+                                    <button class="btn btn-primary" id="refreshBtn">
+                                        <i class="fas fa-sync-alt"></i> 刷新
+                                    </button>
+                                    <button class="btn btn-secondary" id="batchOperationsBtn" data-toggle="modal" data-target="#batchOperationsModal">
+                                        <i class="fas fa-cogs"></i> 批量操作
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 容器列表 -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">容器列表</h6>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm" id="selectAllBtn">
+                            <i class="fas fa-check-square"></i> 全选
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" id="selectNoneBtn">
+                            <i class="fas fa-square"></i> 全不选
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="containersTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th width="30">
+                                        <input type="checkbox" id="selectAllCheckbox">
+                                    </th>
+                                    <th>名称</th>
+                                    <th>状态</th>
+                                    <th>镜像</th>
+                                    <th>引擎</th>
+                                    <th>CPU</th>
+                                    <th>内存</th>
+                                    <th>IP地址</th>
+                                    <th>创建时间</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- 容器数据将通过JavaScript加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 批量操作模态框 -->
+<div class="modal fade" id="batchOperationsModal" tabindex="-1" role="dialog" aria-labelledby="batchOperationsModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="batchOperationsModalLabel">批量操作</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>选择操作</label>
+                    <select class="form-control" id="batchOperationType">
+                        <option value="start">启动选中容器</option>
+                        <option value="stop">停止选中容器</option>
+                        <option value="restart">重启选中容器</option>
+                        <option value="delete">删除选中容器</option>
+                    </select>
+                </div>
+                <div class="alert alert-warning" id="batchOperationWarning" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>警告：</strong> 此操作将影响 <span id="selectedCount">0</span> 个容器，请谨慎操作！
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="executeBatchOperation">执行操作</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 容器详情模态框 -->
+<div class="modal fade" id="containerDetailsModal" tabindex="-1" role="dialog" aria-labelledby="containerDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="containerDetailsModalLabel">容器详情</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="containerDetailsContent">
+                    <!-- 详情内容将通过JavaScript加载 -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    let allContainers = [];
+    let filteredContainers = [];
+    let selectedContainers = new Set();
+
+    // 初始化数据表格
+    const table = $('#containersTable').DataTable({
+        ajax: {
+                        url: '/api/containers/user',
+                        dataSrc: function(data) {
+                            allContainers = data.data.containers;
+                            filteredContainers = allContainers;
+                            updateStatistics();
+                            return allContainers;
+                        }
+                    },
+        columns: [
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return `<input type="checkbox" class="container-checkbox" data-id="${row.id}">`;
+                },
+                orderable: false
+            },
+            { 
+                data: 'name',
+                render: function(data) {
+                    return `<strong>${data}</strong>`;
+                }
+            },
+            { 
+                data: 'status',
+                render: function(data, type, row) {
+                    const statusClass = getStatusClass(data);
+                    const statusIcon = getStatusIcon(data);
+                    return `<span class="badge ${statusClass}"><i class="fas ${statusIcon}"></i> ${getStatusText(data)}</span>`;
+                }
+            },
+            { data: 'image' },
+            { data: 'engine_name' },
+            { 
+                data: 'cpu_limit',
+                render: function(data) {
+                    return data || '无限制';
+                }
+            },
+            { 
+                data: 'memory_limit',
+                render: function(data) {
+                    return formatBytes(data) || '无限制';
+                }
+            },
+            { 
+                data: 'ip_address',
+                render: function(data) {
+                    return data || '-';
+                }
+            },
+            { 
+                data: 'created_at',
+                render: function(data) {
+                    return formatDate(data);
+                }
+            },
+            {
+                data: null,
+                render: function(data, type, row) {
+                    return `
+                        <div class="btn-group" role="group">
+                            <button class="btn btn-success btn-sm start-container" data-id="${row.id}" data-status="${row.status}" 
+                                    title="启动容器" ${row.status === 'running' ? 'disabled' : ''}>
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm stop-container" data-id="${row.id}" data-status="${row.status}"
+                                    title="停止容器" ${row.status !== 'running' ? 'disabled' : ''}>
+                                <i class="fas fa-stop"></i>
+                            </button>
+                            <button class="btn btn-info btn-sm view-details" data-id="${row.id}" title="查看详情">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm delete-container" data-id="${row.id}" title="删除容器">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        ],
+        order: [[1, 'asc']],
+        language: {
+            url: '//cdn.datatables.net/plug-ins/1.10.24/i18n/Chinese.json'
+        },
+        drawCallback: function() {
+            updateCheckboxStates();
+        }
+    });
+
+    // 状态样式和图标
+    function getStatusClass(status) {
+        const statusClasses = {
+            'running': 'badge-success',
+            'stopped': 'badge-secondary',
+            'exited': 'badge-secondary',
+            'error': 'badge-danger',
+            'creating': 'badge-info',
+            'restarting': 'badge-warning'
+        };
+        return statusClasses[status] || 'badge-secondary';
+    }
+
+    function getStatusIcon(status) {
+        const statusIcons = {
+            'running': 'fa-play-circle',
+            'stopped': 'fa-stop-circle',
+            'exited': 'fa-stop-circle',
+            'error': 'fa-exclamation-circle',
+            'creating': 'fa-spinner fa-spin',
+            'restarting': 'fa-sync-alt fa-spin'
+        };
+        return statusIcons[status] || 'fa-question-circle';
+    }
+
+    function getStatusText(status) {
+        const statusTexts = {
+            'running': '运行中',
+            'stopped': '已停止',
+            'exited': '已退出',
+            'error': '错误',
+            'creating': '创建中',
+            'restarting': '重启中'
+        };
+        return statusTexts[status] || status;
+    }
+
+    // 格式化函数
+    function formatBytes(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function formatDate(dateString) {
+        return new Date(dateString).toLocaleString('zh-CN');
+    }
+
+    // 更新统计信息
+    function updateStatistics() {
+        const total = allContainers.length;
+        const running = allContainers.filter(c => c.status === 'running').length;
+        const stopped = allContainers.filter(c => c.status === 'stopped' || c.status === 'exited').length;
+        
+        $('#totalContainers').text(total);
+        $('#runningContainers').text(running);
+        $('#stoppedContainers').text(stopped);
+        
+        const resourceUsage = total > 0 ? Math.round((running / total) * 100) : 0;
+        $('#resourceUsage').text(resourceUsage + '%');
+    }
+
+    // 筛选功能
+    function applyFilters() {
+        const statusFilter = $('#statusFilter').val();
+        const engineFilter = $('#engineFilter').val();
+        const searchTerm = $('#searchInput').val().toLowerCase();
+
+        filteredContainers = allContainers.filter(container => {
+            const statusMatch = !statusFilter || container.status === statusFilter;
+            const engineMatch = !engineFilter || container.engine_name === engineFilter;
+            const searchMatch = !searchTerm || 
+                container.name.toLowerCase().includes(searchTerm) ||
+                container.image.toLowerCase().includes(searchTerm);
+            
+            return statusMatch && engineMatch && searchMatch;
+        });
+
+        table.clear().rows.add(filteredContainers).draw();
+    }
+
+    // 筛选事件监听
+    $('#statusFilter, #engineFilter').on('change', applyFilters);
+    $('#searchInput').on('input', applyFilters);
+
+    // 刷新按钮
+    $('#refreshBtn').on('click', function() {
+        table.ajax.reload();
+    });
+
+    // 复选框功能
+    $('#selectAllCheckbox').on('change', function() {
+        const isChecked = $(this).is(':checked');
+        $('.container-checkbox').prop('checked', isChecked);
+        
+        if (isChecked) {
+            filteredContainers.forEach(container => {
+                selectedContainers.add(container.id);
+            });
+        } else {
+            selectedContainers.clear();
+        }
+        
+        updateBatchOperationButton();
+    });
+
+    $('#selectAllBtn').on('click', function() {
+        $('#selectAllCheckbox').prop('checked', true).trigger('change');
+    });
+
+    $('#selectNoneBtn').on('click', function() {
+        $('#selectAllCheckbox').prop('checked', false).trigger('change');
+    });
+
+    $(document).on('change', '.container-checkbox', function() {
+        const containerId = $(this).data('id');
+        
+        if ($(this).is(':checked')) {
+            selectedContainers.add(containerId);
+        } else {
+            selectedContainers.delete(containerId);
+        }
+        
+        updateCheckboxStates();
+        updateBatchOperationButton();
+    });
+
+    function updateCheckboxStates() {
+        $('.container-checkbox').each(function() {
+            const containerId = $(this).data('id');
+            $(this).prop('checked', selectedContainers.has(containerId));
+        });
+        
+        const allChecked = filteredContainers.length > 0 && 
+            filteredContainers.every(container => selectedContainers.has(container.id));
+        $('#selectAllCheckbox').prop('checked', allChecked);
+    }
+
+    function updateBatchOperationButton() {
+        const count = selectedContainers.size;
+        $('#batchOperationsBtn').prop('disabled', count === 0);
+        $('#selectedCount').text(count);
+        
+        if (count > 0) {
+            $('#batchOperationWarning').show();
+        } else {
+            $('#batchOperationWarning').hide();
+        }
+    }
+
+    // 批量操作
+    $('#batchOperationsBtn').on('click', function() {
+        if (selectedContainers.size === 0) {
+            alert('请先选择要操作的容器');
+            return;
+        }
+    });
+
+    $('#executeBatchOperation').on('click', function() {
+        const operation = $('#batchOperationType').val();
+        const containerIds = Array.from(selectedContainers);
+        
+        if (!confirm(`确定要对 ${containerIds.length} 个容器执行${getOperationText(operation)}操作吗？`)) {
+            return;
+        }
+
+        executeBatchOperation(operation, containerIds);
+    });
+
+    function getOperationText(operation) {
+        const operations = {
+            'start': '启动',
+            'stop': '停止',
+            'restart': '重启',
+            'delete': '删除'
+        };
+        return operations[operation] || operation;
+    }
+
+    function executeBatchOperation(operation, containerIds) {
+        const promises = containerIds.map(containerId => {
+            let url, method;
+            
+            switch(operation) {
+                case 'start':
+                    url = baseUrl + '/api/containers/' + containerId + '/start';
+                    method = 'POST';
+                    break;
+                case 'stop':
+                    url = baseUrl + '/api/containers/' + containerId + '/stop';
+                    method = 'POST';
+                    break;
+                case 'restart':
+                    url = baseUrl + '/api/containers/' + containerId + '/restart';
+                    method = 'POST';
+                    break;
+                case 'delete':
+                    url = baseUrl + '/api/containers/' + containerId;
+                    method = 'DELETE';
+                    break;
+            }
+            
+            return $.ajax({
+                url: url,
+                method: method
+            });
+        });
+
+        Promise.allSettled(promises).then(results => {
+            const successCount = results.filter(r => r.status === 'fulfilled').length;
+            const failureCount = results.filter(r => r.status === 'rejected').length;
+            
+            let message = `批量操作完成：\n成功：${successCount} 个\n失败：${failureCount} 个`;
+            alert(message);
+            
+            $('#batchOperationsModal').modal('hide');
+            selectedContainers.clear();
+            table.ajax.reload();
+        });
+    }
+
+    // 停止容器
+    $(document).on('click', '.stop-container', function() {
+        const containerId = $(this).data('id');
+        const status = $(this).data('status');
+        
+        if (status !== 'running') {
+            alert('容器未在运行状态');
+            return;
+        }
+
+        if (confirm('确定要停止这个容器吗？')) {
+            $.ajax({
+                url: baseUrl + '/api/containers/' + containerId + '/stop',
+                method: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        alert('容器已停止');
+                        table.ajax.reload();
+                    } else {
+                        alert('操作失败: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('操作失败');
+                }
+            });
+        }
+    });
+
+    // 启动容器
+    $(document).on('click', '.start-container', function() {
+        const containerId = $(this).data('id');
+        const status = $(this).data('status');
+        
+        if (status === 'running') {
+            alert('容器已经在运行中');
+            return;
+        }
+
+        if (confirm('确定要启动这个容器吗？')) {
+            $.ajax({
+                url: baseUrl + '/api/containers/' + containerId + '/start',
+                method: 'POST',
+                success: function(response) {
+                    if (response.success) {
+                        alert('容器已启动');
+                        table.ajax.reload();
+                    } else {
+                        alert('操作失败: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('操作失败');
+                }
+            });
+        }
+    });
+
+    // 查看详情
+    $(document).on('click', '.view-details', function() {
+        const containerId = $(this).data('id');
+        showContainerDetails(containerId);
+    });
+
+    // 删除容器
+    $(document).on('click', '.delete-container', function() {
+        const containerId = $(this).data('id');
+        if (confirm('确定要删除这个容器吗？此操作不可恢复！')) {
+            $.ajax({
+                url: baseUrl + '/api/containers/' + containerId,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        alert('容器已删除');
+                        table.ajax.reload();
+                    } else {
+                        alert('删除失败: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('删除失败');
+                }
+            });
+        }
+    });
+
+    // 显示容器详情
+    function showContainerDetails(containerId) {
+        $.ajax({
+            url: baseUrl + '/api/containers/' + containerId,
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    const container = response.container;
+                    const detailsHtml = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>基本信息</h6>
+                                <table class="table table-sm">
+                                    <tr><td><strong>容器ID:</strong></td><td>${container.id}</td></tr>
+                                    <tr><td><strong>名称:</strong></td><td>${container.name}</td></tr>
+                                    <tr><td><strong>状态:</strong></td><td><span class="badge ${getStatusClass(container.status)}">${getStatusText(container.status)}</span></td></tr>
+                                    <tr><td><strong>镜像:</strong></td><td>${container.image}</td></tr>
+                                    <tr><td><strong>引擎:</strong></td><td>${container.engine_name}</td></tr>
+                                </table>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>资源限制</h6>
+                                <table class="table table-sm">
+                                    <tr><td><strong>CPU限制:</strong></td><td>${container.cpu_limit || '无限制'}</td></tr>
+                                    <tr><td><strong>内存限制:</strong></td><td>${formatBytes(container.memory_limit) || '无限制'}</td></tr>
+                                    <tr><td><strong>IP地址:</strong></td><td>${container.ip_address || '-'}</td></tr>
+                                    <tr><td><strong>创建时间:</strong></td><td>${formatDate(container.created_at)}</td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    `;
+                    
+                    $('#containerDetailsContent').html(detailsHtml);
+                    $('#containerDetailsModal').modal('show');
+                } else {
+                    alert('获取容器详情失败: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('获取容器详情失败');
+            }
+        });
+    }
+
+    // 自动刷新（可选）
+    setInterval(function() {
+        if ($('#containersTable').is(':visible')) {
+            table.ajax.reload(null, false);
+        }
+    }, 30000);
+}]}
+</script>
+{% endblock %}

@@ -1,0 +1,271 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">管理员仪表板</h1>
+            
+            <!-- 统计卡片 -->
+            <div class="row">
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-primary shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        总用户数
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.users.total }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-success shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        活跃用户数
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.users.active }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-user-check fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-info shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        总容器数
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.containers.total }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-cube fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6 mb-4">
+                    <div class="card border-left-warning shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        运行中容器
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.containers.running }}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-play-circle fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 详细信息 -->
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">用户统计</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="text-center">
+                                        <h5 class="text-primary">{{ stats.users.total }}</h5>
+                                        <p class="text-muted">总用户数</p>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="text-center">
+                                        <h5 class="text-success">{{ stats.users.active }}</h5>
+                                        <p class="text-muted">活跃用户数</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="text-center">
+                                        <h5 class="text-warning">{{ stats.users.admin }}</h5>
+                                        <p class="text-muted">管理员数</p>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="text-center">
+                                        <h5 class="text-info">{{ stats.users.total - stats.users.active }}</h5>
+                                        <p class="text-muted">非活跃用户数</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">容器统计</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="text-center">
+                                        <h5 class="text-primary">{{ stats.containers.total }}</h5>
+                                        <p class="text-muted">总容器数</p>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="text-center">
+                                        <h5 class="text-success">{{ stats.containers.running }}</h5>
+                                        <p class="text-muted">运行中容器</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="text-center">
+                                        <h5 class="text-warning">{{ stats.containers.stopped }}</h5>
+                                        <p class="text-muted">已停止容器</p>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="text-center">
+                                        <h5 class="text-info">{{ stats.engines }}</h5>
+                                        <p class="text-muted">容器引擎数</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 管理链接 -->
+            <div class="row">
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card bg-primary text-white shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">用户管理</h5>
+                            <p class="card-text">管理用户账户和权限</p>
+                            <a href="{{ url_for('admin.users') }}" class="btn btn-light btn-sm">进入管理</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card bg-success text-white shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">系统设置</h5>
+                            <p class="card-text">配置系统参数</p>
+                            <a href="{{ url_for('admin.settings') }}" class="btn btn-light btn-sm">进入设置</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card bg-info text-white shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">引擎管理</h5>
+                            <p class="card-text">管理容器引擎</p>
+                            <a href="{{ url_for('admin.engines') }}" class="btn btn-light btn-sm">进入管理</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-3 col-md-6 mb-4">
+                    <div class="card bg-warning text-white shadow">
+                        <div class="card-body">
+                            <h5 class="card-title">模板管理</h5>
+                            <p class="card-text">管理容器模板</p>
+                            <a href="{{ url_for('admin.templates') }}" class="btn btn-light btn-sm">进入管理</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 系统监控 -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">系统监控</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <a href="{{ url_for('admin.monitor') }}" class="btn btn-outline-primary btn-block">
+                                        <i class="fas fa-chart-line"></i> 查看系统监控
+                                    </a>
+                                </div>
+                                <div class="col-sm-6">
+                                    <a href="{{ url_for('main.containers') }}" class="btn btn-outline-success btn-block">
+                                        <i class="fas fa-cube"></i> 查看容器列表
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // 页面加载完成后的初始化
+    console.log('管理员仪表板已加载');
+    
+    // 可以添加更多的统计图表和实时数据更新
+    loadSystemStats();
+    
+    // 每30秒刷新一次数据
+    setInterval(loadSystemStats, 30000);
+});
+
+// 加载系统统计
+function loadSystemStats() {
+    $.ajax({
+        url: baseUrl + '/api/admin/system/stats',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                updateStatsDisplay(response.data);
+            }
+        },
+        error: function() {
+            console.error('Failed to load system stats');
+        }
+    });
+}
+
+// 更新统计显示
+function updateStatsDisplay(stats) {
+    // 这里可以添加动态更新统计卡片的逻辑
+    // 例如使用动画效果更新数字
+    console.log('System stats updated:', stats);
+}
+</script>
+{% endblock %}

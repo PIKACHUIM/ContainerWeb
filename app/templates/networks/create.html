@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">创建网络</h1>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">网络配置</h6>
+                </div>
+                <div class="card-body">
+                    <form id="createNetworkForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="networkName">网络名称</label>
+                                    <input type="text" class="form-control" id="networkName" name="name" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="engineSelect">容器引擎</label>
+                                    <select class="form-control" id="engineSelect" name="engine_id" required>
+                                        <option value="">选择引擎</option>
+                                        {% for engine in engines %}
+                                        <option value="{{ engine.id }}">{{ engine.name }} ({{ engine.engine_type }})</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="networkType">网络类型</label>
+                                    <select class="form-control" id="networkType" name="network_type" required>
+                                        <option value="bridge">Bridge</option>
+                                        <option value="overlay">Overlay</option>
+                                        <option value="macvlan">MacVLAN</option>
+                                        <option value="host">Host</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="driver">驱动类型</label>
+                                    <input type="text" class="form-control" id="driver" name="driver" value="bridge">
+                                    <small class="form-text text-muted">网络驱动类型</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="subnet">子网</label>
+                                    <input type="text" class="form-control" id="subnet" name="subnet" placeholder="例如: 172.20.0.0/16">
+                                    <small class="form-text text-muted">CIDR格式，留空则自动分配</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="gateway">网关</label>
+                                    <input type="text" class="form-control" id="gateway" name="gateway" placeholder="例如: 172.20.0.1">
+                                    <small class="form-text text-muted">留空则自动分配</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="ipRange">IP范围</label>
+                                    <input type="text" class="form-control" id="ipRange" name="ip_range" placeholder="例如: 172.20.0.0/24">
+                                    <small class="form-text text-muted">可分配的IP范围，留空则使用整个子网</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="mtu">MTU大小</label>
+                                    <input type="number" class="form-control" id="mtu" name="mtu" value="1500" min="68" max="9000">
+                                    <small class="form-text text-muted">最大传输单元</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="options">额外选项</label>
+                            <textarea class="form-control" id="options" name="options" rows="3" placeholder="例如: com.docker.network.bridge.name=docker0"></textarea>
+                            <small class="form-text text-muted">每行一个选项，格式: key=value</small>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="internal" name="internal">
+                                <label class="form-check-label" for="internal">
+                                    内部网络（禁止外部访问）
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="attachable" name="attachable">
+                                <label class="form-check-label" for="attachable">
+                                    允许手动附加容器
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="form-check">
+                                <input type="checkbox" class="form-check-input" id="ingress" name="ingress">
+                                <label class="form-check-label" for="ingress">
+                                    作为入口网络（负载均衡）
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-icon-split">
+                            <span class="icon text-white-50">
+                                <i class="fas fa-plus"></i>
+                            </span>
+                            <span class="text">创建网络</span>
+                        </button>
+                        <a href="{{ url_for('main.networks') }}" class="btn btn-secondary">取消</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // 网络类型变化事件
+    $('#networkType').change(function() {
+        var networkType = $(this).val();
+        
+        // 根据网络类型调整驱动默认值
+        switch(networkType) {
+            case 'bridge':
+                $('#driver').val('bridge');
+                break;
+            case 'overlay':
+                $('#driver').val('overlay');
+                break;
+            case 'macvlan':
+                $('#driver').val('macvlan');
+                break;
+            case 'host':
+                $('#driver').val('host');
+                break;
+        }
+    });
+
+    // 表单提交
+    $('#createNetworkForm').submit(function(e) {
+        e.preventDefault();
+        
+        var formData = $(this).serialize();
+        
+        $.ajax({
+            url: baseUrl + '/api/networks',
+            method: 'POST',
+            data: formData,
+            success: function(response) {
+                if (response.success) {
+                    alert('网络创建成功');
+                    window.location.href = baseUrl + '/networks';
+                } else {
+                    alert('创建失败: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('创建失败');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

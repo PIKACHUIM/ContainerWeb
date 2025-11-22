@@ -1,0 +1,387 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">引擎管理</h1>
+                <button class="btn btn-primary" data-toggle="modal" data-target="#addEngineModal">
+                    <i class="fas fa-plus"></i> 添加引擎
+                </button>
+            </div>
+
+            <!-- 引擎列表 -->
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">容器引擎列表</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="enginesTable" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>名称</th>
+                                    <th>类型</th>
+                                    <th>地址</th>
+                                    <th>状态</th>
+                                    <th>版本</th>
+                                    <th>容器数</th>
+                                    <th>CPU使用率</th>
+                                    <th>内存使用率</th>
+                                    <th>最后检查</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="enginesTableBody">
+                                <!-- 引擎数据将通过JavaScript加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 添加引擎模态框 -->
+<div class="modal fade" id="addEngineModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">添加容器引擎</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addEngineForm">
+                    <div class="form-group">
+                        <label>引擎名称</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>引擎类型</label>
+                        <select class="form-control" name="engine_type" required>
+                            <option value="docker">Docker</option>
+                            <option value="podman">Podman</option>
+                            <option value="containerd">containerd</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>连接地址</label>
+                        <input type="text" class="form-control" name="endpoint" placeholder="unix:///var/run/docker.sock" required>
+                    </div>
+                    <div class="form-group">
+                        <label>API版本</label>
+                        <input type="text" class="form-control" name="api_version" placeholder="1.41">
+                    </div>
+                    <div class="form-group">
+                        <label>超时时间（秒）</label>
+                        <input type="number" class="form-control" name="timeout" value="30" min="1" max="300">
+                    </div>
+                    <div class="form-group">
+                        <label>启用TLS</label>
+                        <div class="custom-control custom-switch">
+                            <input type="checkbox" class="custom-control-input" name="tls_enabled" id="tlsEnabled">
+                            <label class="custom-control-label" for="tlsEnabled">启用TLS加密</label>
+                        </div>
+                    </div>
+                    <div id="tlsSettings" style="display: none;">
+                        <div class="form-group">
+                            <label>CA证书</label>
+                            <textarea class="form-control" name="ca_cert" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>客户端证书</label>
+                            <textarea class="form-control" name="client_cert" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>客户端密钥</label>
+                            <textarea class="form-control" name="client_key" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="addEngine()">添加引擎</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑引擎模态框 -->
+<div class="modal fade" id="editEngineModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑引擎</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editEngineForm">
+                    <input type="hidden" name="id" id="editEngineId">
+                    <div class="form-group">
+                        <label>引擎名称</label>
+                        <input type="text" class="form-control" name="name" id="editEngineName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>引擎类型</label>
+                        <select class="form-control" name="engine_type" id="editEngineType" required>
+                            <option value="docker">Docker</option>
+                            <option value="podman">Podman</option>
+                            <option value="containerd">containerd</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>连接地址</label>
+                        <input type="text" class="form-control" name="endpoint" id="editEngineEndpoint" required>
+                    </div>
+                    <div class="form-group">
+                        <label>API版本</label>
+                        <input type="text" class="form-control" name="api_version" id="editApiVersion">
+                    </div>
+                    <div class="form-group">
+                        <label>超时时间（秒）</label>
+                        <input type="number" class="form-control" name="timeout" id="editTimeout" min="1" max="300">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="updateEngine()">保存更改</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    loadEngines();
+    
+    // TLS设置切换
+    $('#tlsEnabled').change(function() {
+        if ($(this).is(':checked')) {
+            $('#tlsSettings').show();
+        } else {
+            $('#tlsSettings').hide();
+        }
+    });
+    
+    // 每30秒刷新一次引擎状态
+    setInterval(loadEngines, 30000);
+});
+
+// 加载引擎列表
+function loadEngines() {
+    $.ajax({
+        url: baseUrl + '/api/admin/engines',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                renderEnginesTable(response.data);
+            } else {
+                toastr.error('加载引擎列表失败');
+            }
+        },
+        error: function() {
+            toastr.error('加载引擎列表失败');
+        }
+    });
+}
+
+// 渲染引擎表格
+function renderEnginesTable(engines) {
+    const tbody = $('#enginesTableBody');
+    tbody.empty();
+    
+    engines.forEach(function(engine) {
+        const row = `
+            <tr>
+                <td>${engine.id}</td>
+                <td>${engine.name}</td>
+                <td>${getEngineTypeBadge(engine.engine_type)}</td>
+                <td>${engine.endpoint}</td>
+                <td>${getStatusBadge(engine.status)}</td>
+                <td>${engine.version || '-'}</td>
+                <td>${engine.container_count || 0}</td>
+                <td>${engine.cpu_usage || '-'}</td>
+                <td>${engine.memory_usage || '-'}</td>
+                <td>${engine.last_check ? formatDate(engine.last_check) : '-'}</td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="editEngine(${engine.id})" title="编辑">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="testEngine(${engine.id})" title="测试连接">
+                        <i class="fas fa-plug"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteEngine(${engine.id})" title="删除">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+// 获取引擎类型标签
+function getEngineTypeBadge(type) {
+    const badges = {
+        'docker': '<span class="badge badge-primary">Docker</span>',
+        'podman': '<span class="badge badge-success">Podman</span>',
+        'containerd': '<span class="badge badge-info">containerd</span>'
+    };
+    return badges[type] || '<span class="badge badge-light">未知</span>';
+}
+
+// 获取状态标签
+function getStatusBadge(status) {
+    const badges = {
+        'online': '<span class="badge badge-success">在线</span>',
+        'offline': '<span class="badge badge-danger">离线</span>',
+        'error': '<span class="badge badge-warning">错误</span>',
+        'unknown': '<span class="badge badge-secondary">未知</span>'
+    };
+    return badges[status] || '<span class="badge badge-light">未知</span>';
+}
+
+// 添加引擎
+function addEngine() {
+    const form = $('#addEngineForm')[0];
+    const formData = new FormData(form);
+    
+    $.ajax({
+        url: baseUrl + '/api/admin/engines',
+        method: 'POST',
+        data: JSON.stringify({
+            name: formData.get('name'),
+            engine_type: formData.get('engine_type'),
+            endpoint: formData.get('endpoint'),
+            api_version: formData.get('api_version'),
+            timeout: parseInt(formData.get('timeout')),
+            tls_enabled: $('#tlsEnabled').is(':checked'),
+            ca_cert: formData.get('ca_cert'),
+            client_cert: formData.get('client_cert'),
+            client_key: formData.get('client_key')
+        }),
+        contentType: 'application/json',
+        success: function(response) {
+            if (response.success) {
+                toastr.success('引擎添加成功');
+                $('#addEngineModal').modal('hide');
+                form.reset();
+                loadEngines();
+            } else {
+                toastr.error(response.message || '引擎添加失败');
+            }
+        },
+        error: function() {
+            toastr.error('引擎添加失败');
+        }
+    });
+}
+
+// 编辑引擎
+function editEngine(engineId) {
+    $.ajax({
+        url: baseUrl + '/api/admin/engines/' + engineId,
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                const engine = response.data;
+                $('#editEngineId').val(engine.id);
+                $('#editEngineName').val(engine.name);
+                $('#editEngineType').val(engine.engine_type);
+                $('#editEngineEndpoint').val(engine.endpoint);
+                $('#editApiVersion').val(engine.api_version || '');
+                $('#editTimeout').val(engine.timeout || 30);
+                $('#editEngineModal').modal('show');
+            } else {
+                toastr.error('获取引擎信息失败');
+            }
+        },
+        error: function() {
+            toastr.error('获取引擎信息失败');
+        }
+    });
+}
+
+// 更新引擎
+function updateEngine() {
+    const engineId = $('#editEngineId').val();
+    const formData = new FormData($('#editEngineForm')[0]);
+    
+    $.ajax({
+        url: baseUrl + '/api/admin/engines/' + engineId,
+        method: 'PUT',
+        data: JSON.stringify({
+            name: formData.get('name'),
+            engine_type: formData.get('engine_type'),
+            endpoint: formData.get('endpoint'),
+            api_version: formData.get('api_version'),
+            timeout: parseInt(formData.get('timeout'))
+        }),
+        contentType: 'application/json',
+        success: function(response) {
+            if (response.success) {
+                toastr.success('引擎更新成功');
+                $('#editEngineModal').modal('hide');
+                loadEngines();
+            } else {
+                toastr.error(response.message || '引擎更新失败');
+            }
+        },
+        error: function() {
+            toastr.error('引擎更新失败');
+        }
+    });
+}
+
+// 测试引擎连接
+function testEngine(engineId) {
+    $.ajax({
+        url: baseUrl + '/api/admin/engines/' + engineId + '/test',
+        method: 'POST',
+        success: function(response) {
+            if (response.success) {
+                toastr.success('引擎连接测试成功');
+                loadEngines();
+            } else {
+                toastr.error(response.message || '引擎连接测试失败');
+            }
+        },
+        error: function() {
+            toastr.error('引擎连接测试失败');
+        }
+    });
+}
+
+// 删除引擎
+function deleteEngine(engineId) {
+    if (confirm('确定要删除这个引擎吗？此操作不可恢复。')) {
+        $.ajax({
+            url: baseUrl + '/api/admin/engines/' + engineId,
+            method: 'DELETE',
+            success: function(response) {
+                if (response.success) {
+                    toastr.success('引擎删除成功');
+                    loadEngines();
+                } else {
+                    toastr.error(response.message || '引擎删除失败');
+                }
+            },
+            error: function() {
+                toastr.error('引擎删除失败');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

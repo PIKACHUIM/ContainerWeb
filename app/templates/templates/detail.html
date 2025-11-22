@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">模板详情</h1>
+            
+            <div class="row">
+                <div class="col-lg-8">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">模板信息</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>模板名称:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateName">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>镜像名称:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateImage">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>描述:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateDescription">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>创建者:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateCreator">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>创建时间:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateCreated">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>状态:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateStatus">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">资源配置</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>CPU限制:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateCpuLimit">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>内存限制:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateMemoryLimit">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>存储限制:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateStorageLimit">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">高级配置</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>启动命令:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateCommand">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>环境变量:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateEnvironmentVars">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>端口映射:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templatePortMappings">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-sm-3">
+                                    <strong>卷映射:</strong>
+                                </div>
+                                <div class="col-sm-9" id="templateVolumeMappings">
+                                    <span class="text-muted">加载中...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">操作</h6>
+                        </div>
+                        <div class="card-body">
+                            <button class="btn btn-success btn-block mb-2" id="useTemplateBtn">
+                                <i class="fas fa-play"></i> 使用此模板创建容器
+                            </button>
+                            <button class="btn btn-warning btn-block mb-2" id="editTemplateBtn">
+                                <i class="fas fa-edit"></i> 编辑模板
+                            </button>
+                            <button class="btn btn-danger btn-block" id="deleteTemplateBtn">
+                                <i class="fas fa-trash"></i> 删除模板
+                            </button>
+                            <hr>
+                            <a href="{{ url_for('main.templates') }}" class="btn btn-secondary btn-block">
+                                <i class="fas fa-arrow-left"></i> 返回模板列表
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="card shadow mb-4">
+                        <div class="card-header py-3">
+                            <h6 class="m-0 font-weight-bold text-primary">统计信息</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <strong>使用次数:</strong>
+                                </div>
+                                <div class="col-6 text-right" id="templateUsageCount">
+                                    <span class="text-muted">0</span>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <strong>是否公开:</strong>
+                                </div>
+                                <div class="col-6 text-right" id="templateIsPublic">
+                                    <span class="text-muted">否</span>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-6">
+                                    <strong>自动启动:</strong>
+                                </div>
+                                <div class="col-6 text-right" id="templateAutoStart">
+                                    <span class="text-muted">否</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // 获取模板ID
+    var templateId = window.location.pathname.split('/').pop();
+    
+    // 加载模板详情
+    function loadTemplateDetail() {
+        $.ajax({
+            url: baseUrl + '/api/templates/' + templateId,
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    var template = response.data;
+                    
+                    // 填充模板信息
+                    $('#templateName').text(template.name || '无');
+                    $('#templateImage').text(template.image || '无');
+                    $('#templateDescription').text(template.description || '无');
+                    $('#templateCreator').text(template.creator || '未知');
+                    $('#templateCreated').text(template.created_at || '未知');
+                    $('#templateStatus').html(template.status === 'active' ? 
+                        '<span class="badge badge-success">活跃</span>' : 
+                        '<span class="badge badge-secondary">禁用</span>');
+                    
+                    // 填充资源配置
+                    $('#templateCpuLimit').text((template.cpu_limit || 0) + ' 核心');
+                    $('#templateMemoryLimit').text((template.memory_limit || 0) + ' MB');
+                    $('#templateStorageLimit').text((template.storage_limit || 0) + ' GB');
+                    
+                    // 填充高级配置
+                    $('#templateCommand').text(template.command || '使用镜像默认命令');
+                    $('#templateEnvironmentVars').text(template.environment_vars || '无');
+                    $('#templatePortMappings').text(template.port_mappings || '无');
+                    $('#templateVolumeMappings').text(template.volume_mappings || '无');
+                    
+                    // 填充统计信息
+                    $('#templateUsageCount').text(template.usage_count || 0);
+                    $('#templateIsPublic').html(template.is_public ? 
+                        '<span class="text-success">是</span>' : 
+                        '<span class="text-muted">否</span>');
+                    $('#templateAutoStart').html(template.auto_start ? 
+                        '<span class="text-success">是</span>' : 
+                        '<span class="text-muted">否</span>');
+                    
+                } else {
+                    alert('加载模板失败: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('加载模板失败');
+            }
+        });
+    }
+    
+    // 使用模板创建容器
+    $('#useTemplateBtn').click(function() {
+        window.location.href = baseUrl + '/containers/create?template=' + templateId;
+    });
+    
+    // 编辑模板
+    $('#editTemplateBtn').click(function() {
+        window.location.href = baseUrl + '/templates/' + templateId + '/edit';
+    });
+    
+    // 删除模板
+    $('#deleteTemplateBtn').click(function() {
+        if (confirm('确定要删除此模板吗？')) {
+            $.ajax({
+                url: baseUrl + '/api/templates/' + templateId,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        alert('模板删除成功');
+                        window.location.href = baseUrl + '/templates';
+                    } else {
+                        alert('删除失败: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('删除失败');
+                }
+            });
+        }
+    });
+    
+    // 加载模板详情
+    loadTemplateDetail();
+});
+</script>
+{% endblock %}

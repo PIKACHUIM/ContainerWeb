@@ -1,0 +1,314 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">终端</h1>
+            
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">容器终端</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="containerSelect">选择容器</label>
+                                <select class="form-control" id="containerSelect">
+                                    <option value="">选择容器...</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button class="btn btn-primary btn-block" id="connectBtn">
+                                    <i class="fas fa-plug"></i> 连接
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button class="btn btn-danger btn-block" id="disconnectBtn" disabled>
+                                    <i class="fas fa-unlink"></i> 断开
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button class="btn btn-warning btn-block" id="clearBtn">
+                                    <i class="fas fa-eraser"></i> 清屏
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button class="btn btn-secondary btn-block" id="fullscreenBtn">
+                                    <i class="fas fa-expand"></i> 全屏
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="terminal-container" id="terminalContainer">
+                        <div id="terminal" style="height: 500px; background-color: #000; color: #fff; padding: 10px; font-family: 'Courier New', monospace; overflow-y: auto;"></div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="commandInput" placeholder="输入命令..." disabled>
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="button" id="sendCommandBtn" disabled>
+                                    <i class="fas fa-paper-plane"></i> 发送
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <div class="alert alert-info">
+                            <h6>使用说明:</h6>
+                            <ul class="mb-0">
+                                <li>选择一个正在运行的容器，然后点击"连接"按钮</li>
+                                <li>连接成功后，可以在输入框中输入命令并发送</li>
+                                <li>支持常用的Linux命令，如ls、cd、cat等</li>
+                                <li>使用Ctrl+C可以中断当前命令</li>
+                                <li>点击"清屏"可以清空终端输出</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+<script>
+$(document).ready(function() {
+    var socket = null;
+    var currentContainer = null;
+    var isConnected = false;
+    
+    // 加载容器列表
+    function loadContainers() {
+        $.ajax({
+            url: baseUrl + '/api/containers',
+            method: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    var html = '<option value="">选择容器...</option>';
+                    response.data.forEach(function(container) {
+                        if (container.status === 'running') {
+                            html += '<option value="' + container.id + '">' + container.name + ' (' + container.engine + ')</option>';
+                        }
+                    });
+                    $('#containerSelect').html(html);
+                }
+            }
+        });
+    }
+    
+    // 连接终端
+    function connectTerminal() {
+        var containerId = $('#containerSelect').val();
+        if (!containerId) {
+            alert('请选择一个容器');
+            return;
+        }
+        
+        currentContainer = containerId;
+        
+        // 创建WebSocket连接
+        socket = io(baseUrl, {
+            path: '/socket.io/',
+            transports: ['websocket', 'polling']
+        });
+        
+        socket.on('connect', function() {
+            console.log('Socket connected');
+            socket.emit('join_terminal', { container_id: containerId });
+        });
+        
+        socket.on('terminal_connected', function(data) {
+            if (data.success) {
+                isConnected = true;
+                $('#connectBtn').prop('disabled', true);
+                $('#disconnectBtn').prop('disabled', false);
+                $('#commandInput').prop('disabled', false);
+                $('#sendCommandBtn').prop('disabled', false);
+                $('#containerSelect').prop('disabled', true);
+                
+                appendToTerminal('=== 终端已连接 ===\\n', 'system');
+            } else {
+                appendToTerminal('连接失败: ' + data.message + '\\n', 'error');
+                disconnectTerminal();
+            }
+        });
+        
+        socket.on('terminal_output', function(data) {
+            appendToTerminal(data.output, 'output');
+            // 自动滚动到底部
+            var terminal = document.getElementById('terminal');
+            terminal.scrollTop = terminal.scrollHeight;
+        });
+        
+        socket.on('terminal_error', function(data) {
+            appendToTerminal('错误: ' + data.message + '\\n', 'error');
+        });
+        
+        socket.on('disconnect', function() {
+            if (isConnected) {
+                appendToTerminal('\\n=== 连接已断开 ===\\n', 'system');
+                disconnectTerminal();
+            }
+        });
+    }
+    
+    // 断开终端
+    function disconnectTerminal() {
+        if (socket) {
+            socket.disconnect();
+            socket = null;
+        }
+        
+        isConnected = false;
+        currentContainer = null;
+        
+        $('#connectBtn').prop('disabled', false);
+        $('#disconnectBtn').prop('disabled', true);
+        $('#commandInput').prop('disabled', true);
+        $('#sendCommandBtn').prop('disabled', true);
+        $('#containerSelect').prop('disabled', false);
+    }
+    
+    // 发送命令
+    function sendCommand() {
+        var command = $('#commandInput').val().trim();
+        if (!command || !socket) return;
+        
+        appendToTerminal(command + '\\n', 'input');
+        socket.emit('terminal_input', { input: command + '\\n' });
+        $('#commandInput').val('');
+    }
+    
+    // 清屏
+    function clearTerminal() {
+        $('#terminal').empty();
+    }
+    
+    // 全屏
+    function toggleFullscreen() {
+        var container = document.getElementById('terminalContainer');
+        if (!document.fullscreenElement) {
+            container.requestFullscreen().catch(err => {
+                alert(`无法进入全屏模式: ${err.message}`);
+            });
+            $('#fullscreenBtn').html('<i class="fas fa-compress"></i> 退出全屏');
+        } else {
+            document.exitFullscreen();
+            $('#fullscreenBtn').html('<i class="fas fa-expand"></i> 全屏');
+        }
+    }
+    
+    // 添加到终端
+    function appendToTerminal(text, type) {
+        var terminal = $('#terminal');
+        var className = '';
+        
+        switch(type) {
+            case 'input':
+                className = 'text-success';
+                break;
+            case 'error':
+                className = 'text-danger';
+                break;
+            case 'system':
+                className = 'text-warning';
+                break;
+            default:
+                className = 'text-light';
+        }
+        
+        terminal.append('<div class="' + className + '">' + escapeHtml(text) + '</div>');
+        terminal.scrollTop(terminal[0].scrollHeight);
+    }
+    
+    // HTML转义
+    function escapeHtml(text) {
+        var map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            \"'\": '&#039;',
+            '\\n': '<br>',
+            '\\r': ''
+        };
+        
+        return text.replace(/[&<>\"'\\n\\r]/g, function(m) { return map[m]; });
+    }
+    
+    // 事件绑定
+    $('#connectBtn').click(connectTerminal);
+    $('#disconnectBtn').click(disconnectTerminal);
+    $('#clearBtn').click(clearTerminal);
+    $('#fullscreenBtn').click(toggleFullscreen);
+    $('#sendCommandBtn').click(sendCommand);
+    
+    // 命令输入框回车事件
+    $('#commandInput').keypress(function(e) {
+        if (e.which === 13) {
+            sendCommand();
+        }
+    });
+    
+    // 全屏状态变化监听
+    $(document).on('fullscreenchange', function() {
+        if (!document.fullscreenElement) {
+            $('#fullscreenBtn').html('<i class="fas fa-expand"></i> 全屏');
+        }
+    });
+    
+    // 页面卸载时断开连接
+    $(window).on('beforeunload', function() {
+        if (socket) {
+            socket.disconnect();
+        }
+    });
+    
+    // 初始化
+    loadContainers();
+});
+</script>
+
+<style>
+#terminal {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+#terminal div {
+    margin: 0;
+    padding: 2px 0;
+}
+
+.terminal-container:fullscreen #terminal {
+    height: calc(100vh - 200px) !important;
+}
+
+@media (max-width: 768px) {
+    #terminal {
+        height: 300px;
+    }
+}
+</style>
+{% endblock %}

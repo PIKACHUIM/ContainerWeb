@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}注册 - ContainerWeb{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-user-plus me-2 text-primary"></i>用户注册
+                </h3>
+            </div>
+            <div class="card-body">
+                <form id="registerForm" method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="username" name="username" required
+                               pattern="[a-zA-Z0-9_]{3,20}" title="用户名只能包含字母、数字和下划线，长度3-20个字符">
+                        <div class="form-text">只能包含字母、数字和下划线，长度3-20个字符</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="email" class="form-label">邮箱</label>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">密码</label>
+                        <input type="password" class="form-control" id="password" name="password" required
+                               minlength="6" title="密码长度至少6个字符">
+                        <div class="form-text">密码长度至少6个字符</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label">确认密码</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                    </div>
+                    
+                    {% if require_code %}
+                    <div class="mb-3">
+                        <label for="registration_code" class="form-label">注册码</label>
+                        <input type="text" class="form-control" id="registration_code" name="registration_code" required>
+                        <div class="form-text">请输入管理员提供的注册码</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary" id="registerBtn">
+                            <i class="fas fa-user-plus me-2"></i>注册
+                        </button>
+                    </div>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <p class="mb-0">已有账户？
+                        <a href="{{ url_for('auth.login') }}" class="text-decoration-none">立即登录</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm_password').value;
+    
+    // 验证密码一致性
+    if (password !== confirmPassword) {
+        showAlert('两次输入的密码不一致', 'danger');
+        return;
+    }
+    
+    const registerBtn = document.getElementById('registerBtn');
+    const originalText = registerBtn.innerHTML;
+    
+    // 显示加载状态
+    registerBtn.innerHTML = '<span class="loading me-2"></span>注册中...';
+    registerBtn.disabled = true;
+    
+    try {
+        const formData = new FormData(this);
+        const response = await axios.post('/auth/register', {
+            username: formData.get('username'),
+            email: formData.get('email'),
+            password: formData.get('password'),
+            confirm_password: formData.get('confirm_password'),
+            registration_code: formData.get('registration_code')
+        });
+        
+        if (response.data.success) {
+            showAlert(response.data.message, 'success');
+            setTimeout(() => {
+                window.location.href = response.data.redirect_url || '/auth/login';
+            }, 2000);
+        }
+    } catch (error) {
+        const message = error.response?.data?.message || '注册失败，请稍后重试';
+        const errors = error.response?.data?.errors;
+        
+        if (errors && Array.isArray(errors)) {
+            errors.forEach(err => showAlert(err, 'danger'));
+        } else {
+            showAlert(message, 'danger');
+        }
+    } finally {
+        registerBtn.innerHTML = originalText;
+        registerBtn.disabled = false;
+    }
+});
+
+// 实时密码确认验证
+document.getElementById('confirm_password').addEventListener('input', function() {
+    const password = document.getElementById('password').value;
+    const confirmPassword = this.value;
+    
+    if (confirmPassword && password !== confirmPassword) {
+        this.setCustomValidity('密码不一致');
+        this.classList.add('is-invalid');
+    } else {
+        this.setCustomValidity('');
+        this.classList.remove('is-invalid');
+    }
+});
+</script>
+{% endblock %}
