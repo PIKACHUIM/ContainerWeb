@@ -289,7 +289,7 @@ def recent_activity():
         for container in recent_containers:
             activities.append({
                 'type': 'container',
-                'action': f"容器 {container.name} 状态变更为 {container.status}",
+                'action': f"容器 {container.actions} 状态变更为 {container.status}",
                 'time': container.updated_at.isoformat(),
                 'user': container.owner.username
             })
@@ -309,7 +309,7 @@ def recent_activity():
         for container in recent_containers:
             activities.append({
                 'type': 'container',
-                'action': f"容器 {container.name} 状态变更为 {container.status}",
+                'action': f"容器 {container.actions} 状态变更为 {container.status}",
                 'time': container.updated_at.isoformat(),
                 'user': current_user.username
             })

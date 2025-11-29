@@ -313,7 +313,7 @@ def remove_engine(engine_id):
     
     try:
         # 从引擎管理器移除
-        engine_manager.remove_engine(engine.name)
+        engine_manager.remove_engine(engine.actions)
         
         # 从数据库删除
         db.session.delete(engine)

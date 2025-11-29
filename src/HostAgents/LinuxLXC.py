@@ -1,18 +1,14 @@
-import abc
+from src.HostAgents.Template import BaseServer
 from src.HostObject.HSConfig import HSConfig
-from src.HostObject.HSTasker import HSTasker
 from src.HostObject.VMPowers import VMPowers
 from src.HostObject.HWStatus import HWStatus
 from src.HostObject.ZMessage import ZMessage
 from src.HostObject.VMConfig import VMConfig
 
 
-class BaseServer(abc):
+class HostServer(BaseServer):
     def __init__(self, config: HSConfig):
-        self.config: HSConfig | None = config
-        self.status: HWStatus | None = None
-        self.logger: list[ZMessage] = []
-        self.tasker: list[HSTasker] = []
+        super().__init__(config)
 
     # 宿主机状态 ==========================================
     def HSStatus(self, in_time: int = 2592000) -> HWStatus:

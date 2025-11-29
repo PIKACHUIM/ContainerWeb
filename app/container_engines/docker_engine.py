@@ -344,7 +344,7 @@ class DockerEngine(ContainerEngine):
             
             return ContainerInfo(
                 id=container.id,
-                name=container.name.lstrip('/'),
+                name=container.actions.lstrip('/'),
                 image=attrs['Config']['Image'],
                 status=container.status,
                 created=attrs['Created'],
@@ -357,7 +357,7 @@ class DockerEngine(ContainerEngine):
             logger.error(f"Failed to convert container to info: {e}")
             return ContainerInfo(
                 id=container.id,
-                name=container.name.lstrip('/'),
+                name=container.actions.lstrip('/'),
                 image="unknown",
                 status=container.status,
                 created="unknown"
@@ -393,7 +393,7 @@ class DockerEngine(ContainerEngine):
         try:
             return {
                 'id': network.id,
-                'name': network.name,
+                'name': network.actions,
                 'driver': network.attrs.get('Driver', 'unknown'),
                 'scope': network.attrs.get('Scope', 'unknown'),
                 'created': network.attrs.get('Created', 'unknown'),
@@ -403,7 +403,7 @@ class DockerEngine(ContainerEngine):
             logger.error(f"Failed to convert network to dict: {e}")
             return {
                 'id': network.id,
-                'name': network.name,
+                'name': network.actions,
                 'driver': 'unknown',
                 'scope': 'unknown',
                 'created': 'unknown',

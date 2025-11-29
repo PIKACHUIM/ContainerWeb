@@ -553,7 +553,7 @@ def get_container_logs(container_id):
             'success': True,
             'data': {
                 'logs': logs,
-                'container_name': container.name
+                'container_name': container.actions
             }
         })
     except Exception as e:

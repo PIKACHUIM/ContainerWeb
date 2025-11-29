@@ -102,7 +102,7 @@ class PodmanEngine(ContainerEngine):
                 logger.info(f"Podman container created: {container_id}")
                 return container_id
             else:
-                raise Exception(f"Failed to create container: {response.text}")
+                raise Exception(f"Failed to create container: {response.message}")
                 
         except Exception as e:
             logger.error(f"Failed to create Podman container: {e}")
@@ -200,7 +200,7 @@ class PodmanEngine(ContainerEngine):
                 params=params
             )
             if response.status_code == 200:
-                return response.text
+                return response.message
             return ""
         except Exception as e:
             logger.error(f"Failed to get logs for Podman container {container_id}: {e}")
@@ -233,7 +233,7 @@ class PodmanEngine(ContainerEngine):
                 if start_response.status_code == 200:
                     return {
                         'exit_code': 0,
-                        'output': start_response.text
+                        'output': start_response.message
                     }
             
             return {'exit_code': -1, 'output': 'Failed to execute command'}
@@ -310,7 +310,7 @@ class PodmanEngine(ContainerEngine):
                 image_id = result.get('Id')
                 logger.info(f"Podman container committed to image: {repository}:{tag}")
                 return image_id
-            raise Exception(f"Failed to commit container: {response.text}")
+            raise Exception(f"Failed to commit container: {response.message}")
         except Exception as e:
             logger.error(f"Failed to commit Podman container {container_id}: {e}")
             raise
@@ -335,7 +335,7 @@ class PodmanEngine(ContainerEngine):
                 network_id = result.get('Id')
                 logger.info(f"Podman network created: {name}")
                 return network_id
-            raise Exception(f"Failed to create network: {response.text}")
+            raise Exception(f"Failed to create network: {response.message}")
         except Exception as e:
             logger.error(f"Failed to create Podman network {name}: {e}")
             raise

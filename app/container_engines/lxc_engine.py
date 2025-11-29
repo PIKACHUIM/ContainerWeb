@@ -152,7 +152,7 @@ class LXCEngine(ContainerEngine):
             logger.info(f"LXC container created: {config.name}")
             return config.name
         else:
-            raise Exception(f"Failed to create container: {response.text}")
+            raise Exception(f"Failed to create container: {response.message}")
     
     def start_container(self, container_id: str) -> bool:
         """启动容器"""
@@ -288,7 +288,7 @@ class LXCEngine(ContainerEngine):
             else:
                 # 远程API获取日志
                 response = self.session.get(f"{self.host}/1.0/containers/{container_id}/logs")
-                return response.text if response.status_code == 200 else ""
+                return response.message if response.status_code == 200 else ""
         except Exception as e:
             logger.error(f"Failed to get logs for LXC container {container_id}: {e}")
             return ""

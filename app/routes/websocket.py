@@ -81,8 +81,8 @@ def handle_join_terminal(data):
     
     emit('terminal_ready', {
         'terminal_id': terminal_id,
-        'container_name': container.name,
-        'message': f'已连接到容器 {container.name} 的终端'
+        'container_name': container.actions,
+        'message': f'已连接到容器 {container.actions} 的终端'
     })
     
     # 发送历史记录
@@ -431,7 +431,7 @@ def get_active_terminals():
         if current_user.id in session['users'] or current_user.is_admin:
             user_terminals.append({
                 'terminal_id': terminal_id,
-                'container_name': session['container'].name,
+                'container_name': session['container'].actions,
                 'container_id': session['container'].id,
                 'user_count': len(session['users'])
             })
@@ -458,6 +458,6 @@ def get_terminal_history(terminal_id):
         'success': True,
         'data': {
             'history': session['history'][-100:],  # 最近100行
-            'container_name': session['container'].name
+            'container_name': session['container'].actions
         }
     })
