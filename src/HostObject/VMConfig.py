@@ -36,6 +36,7 @@ class VMConfig:
         self.flu_num = 0  # 分配流量(单位Mbps)
         self.nat_num = 0  # 分配端口(0-不分配)
         self.web_num = 0  # 分配代理(0-不分配)
+        self.gpu_mem = 0  # 显卡显存(0-不分配)
         self.nic_all: dict[str, NCConfig] = {}
         # 加载数据 ===========================
         self.__load__(**kwargs)
